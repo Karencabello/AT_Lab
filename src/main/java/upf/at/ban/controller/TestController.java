@@ -1,14 +1,17 @@
-package main.java.upf.at.ban.controller;
-/*Creem un endpoint de prova */
+package upf.at.ban.controller;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 @Path("/test")
 public class TestController {
-    
-    @Get
-    @Produces(mediaType.TEXT_PLAIN)
-    public String test(){
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String test() {
         return "OK";
     }
 }
+
