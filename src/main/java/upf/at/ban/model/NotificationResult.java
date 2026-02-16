@@ -1,4 +1,4 @@
-package main.java.upf.at.ban.model;
+package upf.at.ban.model;
 
 public class NotificationResult {
     

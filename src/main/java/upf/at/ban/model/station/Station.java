@@ -1,5 +1,5 @@
 
-package main.java.upf.at.ban.controller.StationServlet;
+package upf.at.ban.model.station;
 
 public class Station {
     private int station_id;
