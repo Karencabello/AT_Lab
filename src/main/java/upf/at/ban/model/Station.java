@@ -1,5 +1,5 @@
 
-package upf.at.ban.model.station;
+package upf.at.ban.model;
 
 public class Station {
     private int station_id;

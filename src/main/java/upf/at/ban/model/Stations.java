@@ -1,4 +1,4 @@
-package upf.at.ban.model.station;
+package upf.at.ban.model;
 
 import java.util.List;
 
