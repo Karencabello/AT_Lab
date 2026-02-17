@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BAN Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">BAN</div>
+      <div>
+        <h1>Dashboard</h1>
+        <p>Control panel de la BAN API</p>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <div class="chip">
+        <span class="dot"></span>
+        <span>API</span>
+        <code id="basePath">api/</code>
+      </div>
+      <button id="btnPing" class="ghost">Test API</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <h2>Live demo</h2>
+        <p>Consultes i subscripcions en temps real des de la interfície web.</p>
+      </div>
+      <div class="heroActions">
+        <button id="btnGetStations" class="primary">Get stations</button>
+        <button id="btnGetClients" class="secondary">Get clients</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <!-- Stations -->
+      <section class="card">
+        <div class="cardTop">
+          <div>
+            <h3>Stations</h3>
+            <p>Llista d’estacions (cache).</p>
+          </div>
+          <div class="cardActions">
+            <button id="btnStationsJson" class="ghost">Veure JSON</button>
+          </div>
+        </div>
+
+        <div class="tableWrap" id="stationsTableWrap">
+          <div class="empty">Clica <b>Get stations</b> per carregar dades.</div>
+        </div>
+
+        <details class="drawer" id="stationsDrawer">
+          <summary>Resposta JSON</summary>
+          <pre id="outStations" class="out">(encara res)</pre>
+        </details>
+      </section>
+
+      <!-- Subscribe -->
+      <section class="card">
+        <div class="cardTop">
+          <div>
+            <h3>Subscribe</h3>
+            <p>Crear client i subscriure’l a estacions.</p>
+          </div>
+        </div>
+
+        <form class="form" id="formSubscribe">
+          <div class="field">
+            <label>Phone</label>
+            <input id="subPhone" placeholder="+346xxxxxxxx" autocomplete="tel" />
+          </div>
+
+          <div class="field">
+            <label>Stations IDs</label>
+            <input id="subStations" placeholder="12,34,56" />
+          </div>
+
+          <div class="two">
+            <div class="field">
+              <label>Telegram token</label>
+              <input id="subTgToken" placeholder="123:ABC..." />
+            </div>
+            <div class="field">
+              <label>chat_id</label>
+              <input id="subChatId" placeholder="123456789" inputmode="numeric" />
+            </div>
+          </div>
+
+          <div class="row">
+            <button id="btnSubscribe" type="button" class="primary">Subscribe</button>
+            <button id="btnClearSub" type="button" class="ghost">Clear</button>
+          </div>
+        </form>
+
+        <pre id="outSubscribe" class="out small">(pendent backend)</pre>
+      </section>
+
+      <!-- Clients -->
+      <section class="card">
+        <div class="cardTop">
+          <div>
+            <h3>Clients</h3>
+            <p>Llista de clients subscrits.</p>
+          </div>
+          <div class="cardActions">
+            <button id="btnClientsJson" class="ghost">Veure JSON</button>
+          </div>
+        </div>
+
+        <div class="clientsWrap" id="clientsWrap">
+          <div class="empty">Clica <b>Get clients</b> per carregar dades.</div>
+        </div>
+
+        <details class="drawer" id="clientsDrawer">
+          <summary>Resposta JSON</summary>
+          <pre id="outClients" class="out">(pendent backend)</pre>
+        </details>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Endpoints</span>
+    <code>GET /api/stations</code>
+    <code>GET /api/clients</code>
+    <code>POST /api/clients/subscribe</code>
+  </footer>
+
+  <script src="js/ban.js"></script>
+</body>
+</html>

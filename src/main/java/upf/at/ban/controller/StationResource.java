@@ -13,13 +13,13 @@ import upf.at.ban.service.CacheService;
 // No crida directament a bicing, sempre passa per cache 
 
 @Path("/stations")
-public class StationServlet {
+public class StationResource {
     private static final CacheService cacheService = new CacheService();
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
 
     public List<Station> geStations(){
-        return cacheService.geStationsCached();
+        return cacheService.getStationsCached();
     }
 }

@@ -1,7 +1,11 @@
-upf/at/ban/controller/StationServlet.class
-upf/at/ban/model/station/Station.class
-upf/at/ban/controller/TestController.class
-upf/at/ban/model/station/Stations.class
+upf/at/ban/model/Station.class
+upf/at/ban/model/Client.class
+upf/at/ban/model/Stations.class
+upf/at/ban/service/BicingService$1.class
 upf/at/ban/model/NotificationResult.class
+upf/at/ban/service/BicingService.class
+upf/at/ban/model/Data.class
 upf/at/ban/config/AppConfig.class
-upf/at/ban/model/station/Data.class
+upf/at/ban/controller/StationResource.class
+upf/at/ban/service/CacheService.class
+upf/at/ban/controller/ClientResource.class
