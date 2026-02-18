@@ -1,25 +1,63 @@
 package upf.at.ban.controller;
 
-import upf.at.ban.model.Client;
+import java.util.Collection;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.List;
+import javax.ws.rs.core.Response;
+
+import upf.at.ban.model.Client;
+import upf.at.ban.repository.ClientRepository;
+import upf.at.ban.service.AgeVerificationService;
 
 @Path("/clients")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClientResource {
 
+    private ClientRepository repository = new ClientRepository(); //guardar i llegir clients
+    private AgeVerificationService ageService = new AgeVerificationService(); //validar edat
+
     @GET
-    public List<Client> getClients() {
+    public Collection<Client> getClients() {
         // TODO: return repository.findAll();
-        throw new WebApplicationException("Not implemented", 501);
+        return repository.getAllClients();
     }
 
+    //Utilitzem response per que permet: Definir status code, 
+    //definir missatge i control total de resposta
     @POST
-    public Client createClient(Client client) {
+    public Response createClient(Client client) {
+
+        //si no client, retornem 400 (Bad Request)
+        if(client==null){ 
+            return Response.status(Response.Status.BAD_REQUEST).entity("Client required").build();
+        }
+
+        //si no adult, retornem 403 (Forbidden)
+        if(!ageService.isAdult(client.getPhone())){ 
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("User is not an adult")
+                    .build();
+        }
+
+        //si Client ja existeix, retornem 409 (Conflict)
+        if(repository.getClientByPhone(client.getPhone()) != null){
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("Client already exists")
+                    .build();
+        }
+
         // TODO: return repository.save(client);
-        throw new WebApplicationException("Not implemented", 501);
+        repository.addClient(client);
+
+        //quan client creat, retornem 201 (Created)
+        return Response.status(Response.Status.CREATED)
+                .entity(client)
+                .build();
     }
 }
