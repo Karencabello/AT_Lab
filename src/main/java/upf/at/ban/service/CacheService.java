@@ -4,13 +4,11 @@ import java.util.List;
 
 import upf.at.ban.model.Data;
 import upf.at.ban.model.Station;
+import upf.at.ban.util.Constants;
 
 // Si cache buida o han passat 120s --> crida a BicingService i actualitza
 // Si no --> retorna cache sense tocar Bicing
 public class CacheService {
-
-    // Temps vida cache --> 120s en ms
-    private static final long ttl = 120_000;
 
     // Crida a l'API de Bicing (a BicingService)
     private final BicingService bicingService;
@@ -36,7 +34,7 @@ public class CacheService {
         boolean cacheEmpty = (cachedStations == null);
 
         // Comprovem si han passat més de 120s
-        boolean cacheExpired = (now - cache_ts) > ttl;
+        boolean cacheExpired = (now - cache_ts) > Constants.CACHE_TTL;
 
         // Si la cache està buida o ha caducat
         if (cacheEmpty || cacheExpired){
