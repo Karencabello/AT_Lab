@@ -13,7 +13,7 @@ public class BicingService {
 
     private static final String bicingPath = "6aa3416d-ce1a-494d-861b-7bd07f069600/resource/1b215493-9e63-4a12-8980-2d7e0fa19f85/download";
 
-    private static final String token = "afegirtoken";
+    private static final String token = "cb98b0c4b326da635573050e787fb0ca30f5ee426d70e92c3e6f9d5808f67cf8";
 
     public Data getStations(){
 
