@@ -24,18 +24,23 @@ public class ClientResource {
 
     @GET
     public Collection<Client> getClients() {
-        // TODO: return repository.findAll();
         return repository.getAllClients();
     }
 
     //Utilitzem response per que permet: Definir status code, 
     //definir missatge i control total de resposta
     @POST
-    public Response createClient(Client client) {
+    @Path("/subscribe")
+    public Response subscribe(Client client) {
 
         //si no client, retornem 400 (Bad Request)
         if(client==null){ 
             return Response.status(Response.Status.BAD_REQUEST).entity("Client required").build();
+        }
+
+        // si no phone, retornem 400 (Bad Request)
+        if(client.getPhone() == null || client.getPhone().isEmpty()){
+            return Response.status(Response.Status.BAD_REQUEST).entity("Phone number required").build();
         }
 
         //si no adult, retornem 403 (Forbidden)
@@ -52,7 +57,6 @@ public class ClientResource {
                     .build();
         }
 
-        // TODO: return repository.save(client);
         repository.addClient(client);
 
         //quan client creat, retornem 201 (Created)

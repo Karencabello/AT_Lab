@@ -6,6 +6,8 @@ import java.util.Map;
 
 import upf.at.ban.model.Client;
 
+// guarda clients per phone
+
 public class ClientRepository{
     //Utilitzem Map(key(string)=num telf, value = Client)
     private static Map<String, Client> clients = new HashMap<>(); 

@@ -132,9 +132,9 @@ function renderClientsList(clients) {
 
     // Fem tolerant el render
     const phone = c.phone ?? c.phone_number ?? "—";
-    const token = c.telegramToken ?? c.telegram_token ?? "—";
+    const token = c.telgramToken ?? "—";
     const chat = c.chat_id ?? c.chatId ?? "—";
-    const stations = c.stationsIds ?? c.stations_ids ?? [];
+    const stations = c.StationsIDs ?? [];
 
     const stationsTxt = Array.isArray(stations)
       ? stations.join(", ")
@@ -226,13 +226,12 @@ async function subscribe() {
 
   // Construïm el payload a partir del formulari
   const payload = {
-    phone: document.getElementById("subPhone").value.trim(),
-    stationsIds: parseStationsIds(
-      document.getElementById("subStations").value
-    ),
-    telegramToken: document.getElementById("subTgToken").value.trim(),
-    chat_id: Number(document.getElementById("subChatId").value.trim())
+  phone: document.getElementById("subPhone").value.trim(),
+  StationsIDs: parseStationsIds(document.getElementById("subStations").value),
+  telgramToken: document.getElementById("subTgToken").value.trim(),
+  chat_id: Number(document.getElementById("subChatId").value.trim())
   };
+
 
   try {
 

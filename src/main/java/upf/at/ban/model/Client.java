@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Client {
     private String phone;
-    private String telgramToken;
+    private String telegramToken;
     private Long chat_id;
     private List<Integer> StationsIDs;
 
@@ -13,7 +13,7 @@ public class Client {
 
     public Client(String phone, String telgramToken, Long chat_id, List<Integer> stationsIDs) {
         this.phone = phone;
-        this.telgramToken = telgramToken;
+        this.telegramToken = telgramToken;
         this.chat_id = chat_id;
         StationsIDs = stationsIDs;
     }
@@ -27,11 +27,11 @@ public class Client {
     }
 
     public String getTelgramToken() {
-        return telgramToken;
+        return telegramToken;
     }
 
     public void setTelgramToken(String telgramToken) {
-        this.telgramToken = telgramToken;
+        this.telegramToken = telgramToken;
     }
 
     public Long getChat_id() {
