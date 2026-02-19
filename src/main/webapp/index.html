@@ -1,175 +1,223 @@
 <!doctype html>
 <html lang="ca">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Projecte AT</title>
 
 <style>
 :root{
-  --bg:#eef5ff;
-  --card:#ffffff;
-  --border:#e4edff;
-  --blue:#4f8df7;
-  --blue-soft:#7fb3ff;
-  --text:#1e293b;
-  --muted:#64748b;
-  --radius:20px;
+  --bg1:#0f172a;
+  --bg2:#111827;
+  --card:#1e293b;
+  --accent:#3b82f6;
+  --accent-soft:#60a5fa;
+  --border:#334155;
+  --text:#f1f5f9;
+  --muted:#94a3b8;
+  --radius:18px;
 }
 
 *{box-sizing:border-box}
 
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  background:linear-gradient(180deg,#f3f8ff 0%,#eef5ff 100%);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+  background:radial-gradient(circle at 20% 20%,#1e3a8a 0%,#0f172a 60%);
   color:var(--text);
+  min-height:100vh;
 }
 
-.container{
-  max-width:980px;
-  margin:60px auto;
-  padding:0 20px;
-}
-
-header{
+/* HEADER */
+.header{
+  padding:80px 20px 60px;
   text-align:center;
-  margin-bottom:40px;
 }
 
-h1{
+.header h1{
   margin:0;
-  font-size:34px;
+  font-size:42px;
   font-weight:700;
+  letter-spacing:.5px;
 }
 
-.sub{
-  margin-top:8px;
-  color:var(--blue);
-  font-weight:600;
+.header .authors{
+  margin-top:12px;
+  font-size:14px;
+  color:var(--accent-soft);
+  letter-spacing:.3px;
 }
 
-.layout{
+/* LAYOUT */
+.container{
+  max-width:1200px;
+  margin:0 auto 80px;
+  padding:0 24px;
+}
+
+.grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:20px;
+  gap:40px;
 }
 
+/* CARD */
 .card{
   background:var(--card);
   border:1px solid var(--border);
   border-radius:var(--radius);
-  padding:24px;
+  padding:30px;
+  backdrop-filter:blur(8px);
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  transition:.3s ease;
 }
 
-.card h2{
-  margin:0 0 16px 0;
-  font-size:16px;
-  color:var(--blue);
+.card:hover{
+  transform:translateY(-4px);
 }
 
+.section-title{
+  font-size:18px;
+  margin-bottom:20px;
+  color:var(--accent-soft);
+}
+
+/* BUTTONS */
 .actions{
   display:flex;
-  gap:12px;
-  margin-bottom:18px;
+  gap:14px;
+  margin-bottom:30px;
 }
 
 button{
-  padding:10px 16px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:white;
+  border:none;
+  padding:11px 22px;
+  border-radius:12px;
   font-weight:600;
   cursor:pointer;
+  background:#0f172a;
+  color:var(--text);
+  border:1px solid var(--border);
+  transition:.2s ease;
 }
 
 button.primary{
-  background:linear-gradient(180deg,var(--blue-soft),var(--blue));
+  background:linear-gradient(135deg,var(--accent),#1d4ed8);
   color:white;
   border:none;
 }
 
+button:hover{
+  box-shadow:0 8px 30px rgba(59,130,246,.35);
+  transform:translateY(-2px);
+}
+
+/* FORM */
 label{
+  display:block;
+  margin-top:18px;
+  margin-bottom:6px;
   font-size:13px;
   color:var(--muted);
-  margin:8px 0 4px;
-  display:block;
 }
 
 input{
   width:100%;
-  padding:10px;
+  padding:12px 14px;
   border-radius:12px;
   border:1px solid var(--border);
-  margin-bottom:10px;
+  background:#0f172a;
+  color:var(--text);
+  font-size:14px;
+  outline:none;
 }
 
+input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(59,130,246,.25);
+}
+
+/* OUTPUT */
 pre{
-  background:#0f172a;
-  color:#e2e8f0;
+  margin-top:24px;
+  background:#0b1220;
   border-radius:16px;
-  padding:16px;
-  font-size:12px;
-  max-height:260px;
+  padding:24px;
+  min-height:280px;
   overflow:auto;
+  font-size:13px;
+  color:#e2e8f0;
+  border:1px solid var(--border);
+}
+
+/* FOOTER */
+.footer{
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+  margin-top:40px;
 }
 
 @media(max-width:900px){
-  .layout{grid-template-columns:1fr}
+  .grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
-<header>
+<div class="header">
   <h1>Projecte AT</h1>
-  <div class="sub">Rut Cabus · Karen Cabello</div>
-</header>
-
-<div class="layout">
-
-  <div class="card">
-    <h2>Accions</h2>
-
-    <div class="actions">
-      <button id="btnGetStations" class="primary">Get stations</button>
-      <button id="btnGetClients">Get clients</button>
-    </div>
-
-    <h2>Subscribe</h2>
-
-    <label>Phone</label>
-    <input id="subPhone" placeholder="600111222">
-
-    <label>Stations IDs</label>
-    <input id="subStations" placeholder="1,2,3">
-
-    <label>Telegram token</label>
-    <input id="subTgToken" placeholder="123:ABC">
-
-    <label>chat_id</label>
-    <input id="subChatId" placeholder="123456789">
-
-    <div class="actions">
-      <button id="btnSubscribe" class="primary">Subscribe</button>
-      <button id="btnClearSub">Clear</button>
-    </div>
-
-    <pre id="outSubscribe">{ }</pre>
-  </div>
-
-  <div class="card">
-    <h2>Output</h2>
-    <pre id="outMain">{ }</pre>
-  </div>
-
+  <div class="authors">Rut Cabus · Karen Cabello</div>
 </div>
 
+<div class="container">
+  <div class="grid">
+
+    <div class="card">
+
+      <div class="section-title">API Controls</div>
+
+      <div class="actions">
+        <button id="btnGetStations" class="primary">Get stations</button>
+        <button id="btnGetClients">Get clients</button>
+      </div>
+
+      <div class="section-title">Subscribe Client</div>
+
+      <label>Phone</label>
+      <input id="subPhone" placeholder="+346xxxxxxxx">
+
+      <label>Stations IDs</label>
+      <input id="subStations" placeholder="12,34,56">
+
+      <label>Telegram token</label>
+      <input id="subTgToken" placeholder="123:ABC">
+
+      <label>chat_id</label>
+      <input id="subChatId" placeholder="123456789">
+
+      <div style="margin-top:24px;">
+        <button id="btnSubscribe" class="primary">Subscribe</button>
+      </div>
+
+      <pre id="outSubscribe">{ }</pre>
+
+    </div>
+
+    <div class="card">
+      <div class="section-title">Response Output</div>
+      <pre id="outMain">{ }</pre>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    BAN API · Aplicacions Telemàtiques
+  </div>
 </div>
 
 <script src="js/ban.js"></script>
+
 </body>
 </html>

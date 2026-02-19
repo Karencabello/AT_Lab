@@ -2,44 +2,39 @@
  * BAN Dashboard - Frontend Logic
  *
  * Aquest fitxer:
- *  - Fa peticions AJAX a la BAN API (Jersey backend)
- *  - Mostra els resultats en format taula i JSON
- *  - Permet crear i subscriure clients (quan el backend estigui fet)
+ *  - Fa peticions HTTP al backend Jersey
+ *  - Mostra resultats al panell de sortida
+ *  - Permet crear clients via POST /api/clients/subscribe
  *
  * IMPORTANT:
- *  - Fem servir fetch() (AJAX modern)
- *  - Fem servir rutes RELATIVES ("api/...") perquè funcioni
- *    tant en local com en AWS sense modificar el codi.
+ *  - Detectem automàticament el context path (AT_Lab)
+ *  - Això permet que funcioni en local i en Docker sense canvis
  **********************************************************************/
 
+
 /* ==========================================================
-   CONFIGURACIÓ D'ENDPOINTS
+   CONFIGURACIÓ DE L'API
    ========================================================== */
 
 /*
- * Base definida per @ApplicationPath("/api") al backend.
- * Això vol dir que tots els recursos pengen de /api/...
+ * window.location.pathname pot ser:
+ *   /AT_Lab/
+ *
+ * El que fem és eliminar l'últim slash
+ * i afegir /api
  */
-const API = window.location.pathname.split("/")[1] 
-    ? `/${window.location.pathname.split("/")[1]}/api`
-    : "/api";
-
+const CONTEXT = window.location.pathname.replace(/\/$/, "");
+const API_BASE = window.location.origin + CONTEXT + "/api";
 
 /*
- * Centralitzem tots els endpoints aquí.
- * Si el backend canvia el path final, només hem de modificar
- * aquestes línies i no tot el codi.
+ * Definim els endpoints reals del backend
  */
 const ENDPOINTS = {
-  stations: `${API}/stations`,              // GET
-  clients: `${API}/clients`,                // GET
-  subscribe: `${API}/clients/subscribe`     // POST
+  stations: API_BASE + "/stations",
+  clients: API_BASE + "/clients",
+  subscribe: API_BASE + "/clients/subscribe"
 };
 
-/*
- * Mostrem visualment la base de l'API a la interfície.
- */
-document.getElementById("basePath").textContent = API + "/";
 
 
 /* ==========================================================
@@ -47,9 +42,9 @@ document.getElementById("basePath").textContent = API + "/";
    ========================================================== */
 
 /*
- * Converteix un string a JSON de forma segura.
- * Si el backend retorna HTML o error en text pla,
- * evitem que el codi peti.
+ * Intenta parsejar text com JSON.
+ * Si el backend retorna HTML (error 404/500),
+ * evitem que el JS peti.
  */
 function safeJsonParse(text) {
   try {
@@ -60,10 +55,7 @@ function safeJsonParse(text) {
 }
 
 /*
- * Converteix un input tipus:
- * "12,34,56"
- * en un array:
- * [12, 34, 56]
+ * Converteix "12,34,56" → [12, 34, 56]
  */
 function parseStationsIds(csv) {
   return (csv || "")
@@ -75,84 +67,31 @@ function parseStationsIds(csv) {
 }
 
 
+
 /* ==========================================================
-   RENDERITZACIÓ DE TAULES
+   MOSTRAR RESULTATS
    ========================================================== */
 
 /*
- * Construeix la taula HTML de stations.
- * Rep un array de Station (del backend).
+ * Escriu resposta al panell principal
  */
-function renderStationsTable(stations) {
-
-  // Si no hi ha dades
-  if (!Array.isArray(stations) || stations.length === 0) {
-    return `<div class="empty">No hi ha dades disponibles.</div>`;
+function showMainOutput(data) {
+  const el = document.getElementById("outMain");
+  if (el) {
+    el.textContent = JSON.stringify(data, null, 2);
   }
-
-  // Generem files HTML dinàmicament
-  const rows = stations.map(s => `
-    <tr>
-      <td>${s.station_id ?? ""}</td>
-      <td>${s.num_bikes_available ?? ""}</td>
-      <td>${s.num_docks_available ?? ""}</td>
-      <td>${s.status ?? ""}</td>
-      <td>${s.last_reported ?? ""}</td>
-      <td>${s.is_charging_station ?? ""}</td>
-    </tr>
-  `).join("");
-
-  return `
-    <table>
-      <thead>
-        <tr>
-          <th>station_id</th>
-          <th>bikes</th>
-          <th>docks</th>
-          <th>status</th>
-          <th>last_reported</th>
-          <th>charging</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
 }
-
 
 /*
- * Renderitza la llista de clients.
- * Fem servir noms flexibles per si el backend
- * usa camelCase o snake_case.
+ * Escriu resposta al panell de subscribe
  */
-function renderClientsList(clients) {
-
-  if (!Array.isArray(clients) || clients.length === 0) {
-    return `<div class="empty">No hi ha clients.</div>`;
+function showSubscribeOutput(data) {
+  const el = document.getElementById("outSubscribe");
+  if (el) {
+    el.textContent = JSON.stringify(data, null, 2);
   }
-
-  return clients.map(c => {
-
-    // Fem tolerant el render
-    const phone = c.phone ?? c.phone_number ?? "—";
-    const token = c.telgramToken ?? "—";
-    const chat = c.chat_id ?? c.chatId ?? "—";
-    const stations = c.StationsIDs ?? [];
-
-    const stationsTxt = Array.isArray(stations)
-      ? stations.join(", ")
-      : String(stations);
-
-    return `
-      <div class="clientCard">
-        <div><b>Phone:</b> ${phone}</div>
-        <div><b>Chat ID:</b> ${chat}</div>
-        <div><b>Token:</b> ${token}</div>
-        <div><b>Stations:</b> ${stationsTxt}</div>
-      </div>
-    `;
-  }).join("");
 }
+
 
 
 /* ==========================================================
@@ -161,13 +100,10 @@ function renderClientsList(clients) {
 
 /*
  * GET /api/stations
- * Recupera totes les estacions.
  */
 async function getStations() {
 
   try {
-
-    // Fetch envia una petició HTTP GET
     const resp = await fetch(ENDPOINTS.stations, {
       headers: { "Accept": "application/json" }
     });
@@ -175,31 +111,20 @@ async function getStations() {
     const text = await resp.text();
     const data = safeJsonParse(text);
 
-    // Mostrem JSON cru
-    document.getElementById("outStations").textContent =
-      JSON.stringify(data, null, 2);
-
-    // Renderitzem taula
-    document.getElementById("stationsTableWrap").innerHTML =
-      renderStationsTable(data);
+    showMainOutput(data);
 
   } catch (e) {
-
-    document.getElementById("outStations").textContent =
-      JSON.stringify({ error: String(e) }, null, 2);
+    showMainOutput({ error: String(e) });
   }
 }
 
 
 /*
  * GET /api/clients
- * Recupera la llista de clients.
- * Funcionarà quan el backend estigui implementat.
  */
 async function getClients() {
 
   try {
-
     const resp = await fetch(ENDPOINTS.clients, {
       headers: { "Accept": "application/json" }
     });
@@ -207,37 +132,35 @@ async function getClients() {
     const text = await resp.text();
     const data = safeJsonParse(text);
 
-    document.getElementById("outClients").textContent =
-      JSON.stringify(data, null, 2);
-
-    document.getElementById("clientsWrap").innerHTML =
-      renderClientsList(data);
+    showMainOutput(data);
 
   } catch (e) {
-
-    document.getElementById("outClients").textContent =
-      JSON.stringify({ error: String(e) }, null, 2);
+    showMainOutput({ error: String(e) });
   }
 }
 
 
 /*
  * POST /api/clients/subscribe
- * Crea un client i el subscriu a estacions.
  */
 async function subscribe() {
 
-  // Construïm el payload a partir del formulari
+  /*
+   * Construïm el JSON que espera el backend.
+   * Ha de coincidir EXACTAMENT amb el model Client.java
+   */
   const payload = {
-  phone: document.getElementById("subPhone").value.trim(),
-  StationsIDs: parseStationsIds(document.getElementById("subStations").value),
-  telgramToken: document.getElementById("subTgToken").value.trim(),
-  chat_id: Number(document.getElementById("subChatId").value.trim())
+    phone: document.getElementById("subPhone").value.trim(),
+    StationsIDs: parseStationsIds(
+      document.getElementById("subStations").value
+    ),
+    telgramToken: document.getElementById("subTgToken").value.trim(),
+    chat_id: Number(
+      document.getElementById("subChatId").value.trim()
+    )
   };
 
-
   try {
-
     const resp = await fetch(ENDPOINTS.subscribe, {
       method: "POST",
       headers: {
@@ -250,15 +173,13 @@ async function subscribe() {
     const text = await resp.text();
     const data = safeJsonParse(text);
 
-    document.getElementById("outSubscribe").textContent =
-      JSON.stringify(data, null, 2);
+    showSubscribeOutput(data);
 
   } catch (e) {
-
-    document.getElementById("outSubscribe").textContent =
-      JSON.stringify({ error: String(e) }, null, 2);
+    showSubscribeOutput({ error: String(e) });
   }
 }
+
 
 
 /* ==========================================================
@@ -266,10 +187,10 @@ async function subscribe() {
    ========================================================== */
 
 document.getElementById("btnGetStations")
-  .addEventListener("click", getStations);
+  ?.addEventListener("click", getStations);
 
 document.getElementById("btnGetClients")
-  .addEventListener("click", getClients);
+  ?.addEventListener("click", getClients);
 
 document.getElementById("btnSubscribe")
-  .addEventListener("click", subscribe);
+  ?.addEventListener("click", subscribe);

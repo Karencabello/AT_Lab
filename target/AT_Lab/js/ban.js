@@ -20,9 +20,8 @@
  * Base definida per @ApplicationPath("/api") al backend.
  * Això vol dir que tots els recursos pengen de /api/...
  */
-const API = window.location.pathname.split("/")[1] 
-    ? `/${window.location.pathname.split("/")[1]}/api`
-    : "/api";
+const API = window.location.origin + window.location.pathname.replace(/\/$/, "") + "/api";
+
 
 
 /*
