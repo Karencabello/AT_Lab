@@ -21,7 +21,7 @@ import upf.at.ban.repository.ClientRepository;
 @Path("/stations")
 public class StationResource {
     private static final CacheService cacheService = new CacheService();
-    private static final ClientRepository clientRepository = new ClientRepository();
+    private static final ClientRepository clientRepository = ClientRepository.getInstance();
 
     @GET
     @Path("/{phone}")

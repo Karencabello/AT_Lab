@@ -12,6 +12,14 @@ public class ClientRepository{
     //Utilitzem Map(key(string)=num telf, value = Client)
     private static Map<String, Client> clients = new HashMap<>(); 
 
+    private static ClientRepository INSTANCE = new ClientRepository();
+
+    private ClientRepository() { }
+    
+    public static ClientRepository getInstance(){
+        return INSTANCE;
+    }
+
     public void addClient(Client client){
         clients.put(client.getPhone(), client);
     }

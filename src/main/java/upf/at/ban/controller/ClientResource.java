@@ -19,7 +19,7 @@ import upf.at.ban.service.AgeVerificationService;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClientResource {
 
-    private ClientRepository repository = new ClientRepository(); //guardar i llegir clients
+    private ClientRepository repository = ClientRepository.getInstance();  //guardar i llegir clients
     private AgeVerificationService ageService = new AgeVerificationService(); //validar edat
 
     @GET

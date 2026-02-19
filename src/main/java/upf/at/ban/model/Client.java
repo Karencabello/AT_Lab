@@ -7,16 +7,9 @@ public class Client {
     private String phone;
     private String telegramToken;
     private Long chat_id;
-    private List<Integer> StationsIDs;
+    private List<Integer> stationsIDs;
 
     public Client() { }
-
-    public Client(String phone, String telgramToken, Long chat_id, List<Integer> stationsIDs) {
-        this.phone = phone;
-        this.telegramToken = telgramToken;
-        this.chat_id = chat_id;
-        StationsIDs = stationsIDs;
-    }
 
     public String getPhone() {
         return phone;
@@ -26,12 +19,12 @@ public class Client {
         this.phone = phone;
     }
 
-    public String getTelgramToken() {
+    public String getTelegramToken() {
         return telegramToken;
     }
 
-    public void setTelgramToken(String telgramToken) {
-        this.telegramToken = telgramToken;
+    public void setTelegramToken(String telegramToken) {
+        this.telegramToken = telegramToken;
     }
 
     public Long getChat_id() {
@@ -43,13 +36,12 @@ public class Client {
     }
 
     public List<Integer> getStationsIDs() {
-        return StationsIDs;
+        return stationsIDs;
     }
 
     public void setStationsIDs(List<Integer> stationsIDs) {
-        StationsIDs = stationsIDs;
+        this.stationsIDs = stationsIDs;
     }
 
     
-
 }

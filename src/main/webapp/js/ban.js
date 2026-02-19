@@ -159,10 +159,10 @@ async function subscribe() {
    */
   const payload = {
     phone: document.getElementById("subPhone").value.trim(),
-    StationsIDs: parseStationsIds(
+    stationsIDs: parseStationsIds(
       document.getElementById("subStations").value
     ),
-    telgramToken: document.getElementById("subTgToken").value.trim(),
+    telegramToken: document.getElementById("subTgToken").value.trim(),
     chat_id: Number(
       document.getElementById("subChatId").value.trim()
     )
