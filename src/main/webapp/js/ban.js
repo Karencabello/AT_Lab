@@ -20,7 +20,10 @@
  * Base definida per @ApplicationPath("/api") al backend.
  * Això vol dir que tots els recursos pengen de /api/...
  */
-const API = "api";
+const API = window.location.pathname.split("/")[1] 
+    ? `/${window.location.pathname.split("/")[1]}/api`
+    : "/api";
+
 
 /*
  * Centralitzem tots els endpoints aquí.

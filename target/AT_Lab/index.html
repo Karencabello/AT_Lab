@@ -1,137 +1,175 @@
 <!doctype html>
 <html lang="ca">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BAN Dashboard</title>
-  <link rel="stylesheet" href="css/style.css" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Projecte AT</title>
+
+<style>
+:root{
+  --bg:#eef5ff;
+  --card:#ffffff;
+  --border:#e4edff;
+  --blue:#4f8df7;
+  --blue-soft:#7fb3ff;
+  --text:#1e293b;
+  --muted:#64748b;
+  --radius:20px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:linear-gradient(180deg,#f3f8ff 0%,#eef5ff 100%);
+  color:var(--text);
+}
+
+.container{
+  max-width:980px;
+  margin:60px auto;
+  padding:0 20px;
+}
+
+header{
+  text-align:center;
+  margin-bottom:40px;
+}
+
+h1{
+  margin:0;
+  font-size:34px;
+  font-weight:700;
+}
+
+.sub{
+  margin-top:8px;
+  color:var(--blue);
+  font-weight:600;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px;
+}
+
+.card h2{
+  margin:0 0 16px 0;
+  font-size:16px;
+  color:var(--blue);
+}
+
+.actions{
+  display:flex;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+button{
+  padding:10px 16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:white;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button.primary{
+  background:linear-gradient(180deg,var(--blue-soft),var(--blue));
+  color:white;
+  border:none;
+}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+  margin:8px 0 4px;
+  display:block;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:10px;
+}
+
+pre{
+  background:#0f172a;
+  color:#e2e8f0;
+  border-radius:16px;
+  padding:16px;
+  font-size:12px;
+  max-height:260px;
+  overflow:auto;
+}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+}
+</style>
 </head>
+
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">BAN</div>
-      <div>
-        <h1>Dashboard</h1>
-        <p>Control panel de la BAN API</p>
-      </div>
+
+<div class="container">
+
+<header>
+  <h1>Projecte AT</h1>
+  <div class="sub">Rut Cabus · Karen Cabello</div>
+</header>
+
+<div class="layout">
+
+  <div class="card">
+    <h2>Accions</h2>
+
+    <div class="actions">
+      <button id="btnGetStations" class="primary">Get stations</button>
+      <button id="btnGetClients">Get clients</button>
     </div>
 
-    <div class="statusbar">
-      <div class="chip">
-        <span class="dot"></span>
-        <span>API</span>
-        <code id="basePath">api/</code>
-      </div>
-      <button id="btnPing" class="ghost">Test API</button>
+    <h2>Subscribe</h2>
+
+    <label>Phone</label>
+    <input id="subPhone" placeholder="600111222">
+
+    <label>Stations IDs</label>
+    <input id="subStations" placeholder="1,2,3">
+
+    <label>Telegram token</label>
+    <input id="subTgToken" placeholder="123:ABC">
+
+    <label>chat_id</label>
+    <input id="subChatId" placeholder="123456789">
+
+    <div class="actions">
+      <button id="btnSubscribe" class="primary">Subscribe</button>
+      <button id="btnClearSub">Clear</button>
     </div>
-  </header>
 
-  <main class="wrap">
-    <section class="hero">
-      <div>
-        <h2>Live demo</h2>
-        <p>Consultes i subscripcions en temps real des de la interfície web.</p>
-      </div>
-      <div class="heroActions">
-        <button id="btnGetStations" class="primary">Get stations</button>
-        <button id="btnGetClients" class="secondary">Get clients</button>
-      </div>
-    </section>
+    <pre id="outSubscribe">{ }</pre>
+  </div>
 
-    <section class="grid">
-      <!-- Stations -->
-      <section class="card">
-        <div class="cardTop">
-          <div>
-            <h3>Stations</h3>
-            <p>Llista d’estacions (cache).</p>
-          </div>
-          <div class="cardActions">
-            <button id="btnStationsJson" class="ghost">Veure JSON</button>
-          </div>
-        </div>
+  <div class="card">
+    <h2>Output</h2>
+    <pre id="outMain">{ }</pre>
+  </div>
 
-        <div class="tableWrap" id="stationsTableWrap">
-          <div class="empty">Clica <b>Get stations</b> per carregar dades.</div>
-        </div>
+</div>
 
-        <details class="drawer" id="stationsDrawer">
-          <summary>Resposta JSON</summary>
-          <pre id="outStations" class="out">(encara res)</pre>
-        </details>
-      </section>
+</div>
 
-      <!-- Subscribe -->
-      <section class="card">
-        <div class="cardTop">
-          <div>
-            <h3>Subscribe</h3>
-            <p>Crear client i subscriure’l a estacions.</p>
-          </div>
-        </div>
-
-        <form class="form" id="formSubscribe">
-          <div class="field">
-            <label>Phone</label>
-            <input id="subPhone" placeholder="+346xxxxxxxx" autocomplete="tel" />
-          </div>
-
-          <div class="field">
-            <label>Stations IDs</label>
-            <input id="subStations" placeholder="12,34,56" />
-          </div>
-
-          <div class="two">
-            <div class="field">
-              <label>Telegram token</label>
-              <input id="subTgToken" placeholder="123:ABC..." />
-            </div>
-            <div class="field">
-              <label>chat_id</label>
-              <input id="subChatId" placeholder="123456789" inputmode="numeric" />
-            </div>
-          </div>
-
-          <div class="row">
-            <button id="btnSubscribe" type="button" class="primary">Subscribe</button>
-            <button id="btnClearSub" type="button" class="ghost">Clear</button>
-          </div>
-        </form>
-
-        <pre id="outSubscribe" class="out small">(pendent backend)</pre>
-      </section>
-
-      <!-- Clients -->
-      <section class="card">
-        <div class="cardTop">
-          <div>
-            <h3>Clients</h3>
-            <p>Llista de clients subscrits.</p>
-          </div>
-          <div class="cardActions">
-            <button id="btnClientsJson" class="ghost">Veure JSON</button>
-          </div>
-        </div>
-
-        <div class="clientsWrap" id="clientsWrap">
-          <div class="empty">Clica <b>Get clients</b> per carregar dades.</div>
-        </div>
-
-        <details class="drawer" id="clientsDrawer">
-          <summary>Resposta JSON</summary>
-          <pre id="outClients" class="out">(pendent backend)</pre>
-        </details>
-      </section>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <span>Endpoints</span>
-    <code>GET /api/stations</code>
-    <code>GET /api/clients</code>
-    <code>POST /api/clients/subscribe</code>
-  </footer>
-
-  <script src="js/ban.js"></script>
+<script src="js/ban.js"></script>
 </body>
 </html>

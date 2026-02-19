@@ -1,176 +1,175 @@
 <!doctype html>
 <html lang="ca">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Projecte AT</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Projecte AT</title>
 
-  <style>
-    :root{
-      --bg:#f6f9ff;
-      --card:#ffffff;
-      --line:#dbe7ff;
-      --text:#0f172a;
-      --muted:#4b5563;
-      --blue:#3b82f6;
-      --blue2:#60a5fa;
-      --shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
-      --radius: 16px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background:
-        radial-gradient(900px 450px at 15% 10%, rgba(96,165,250,.25), transparent 60%),
-        radial-gradient(900px 450px at 85% 20%, rgba(59,130,246,.18), transparent 60%),
-        var(--bg);
-      color:var(--text);
-      min-height:100vh;
-    }
-    .wrap{max-width:1050px;margin:0 auto;padding:26px 18px 40px}
-    header{
-      background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.85));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:22px 22px;
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:14px;
-    }
-    h1{margin:0;font-size:28px;letter-spacing:.2px}
-    .sub{margin-top:6px;color:var(--blue);font-weight:700}
-    .right{
-      display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px;
-      border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;
-    }
-    .dot{width:10px;height:10px;border-radius:50%;
-      background:linear-gradient(180deg,var(--blue2),var(--blue));
-      box-shadow:0 0 0 4px rgba(96,165,250,.22)}
-    main{margin-top:14px;display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
-    .card{
-      background:rgba(255,255,255,.92);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:18px;
-    }
-    .cardTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-    .cardTop h2{margin:0;font-size:16px}
-    .actions{display:flex;gap:10px;flex-wrap:wrap}
-    button{
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:600;
-      font-size:13px;
-    }
-    button.primary{
-      background:linear-gradient(180deg,var(--blue2),var(--blue));
-      border-color:transparent;
-      color:white;
-    }
-    button:active{transform:translateY(1px)}
-    label{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 6px}
-    input{
-      width:100%;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#fff;
-      outline:none;
-      font-size:14px;
-    }
-    input:focus{border-color:#b9d3ff;box-shadow:0 0 0 4px rgba(96,165,250,.18)}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    pre{
-      margin:0;
-      background:#0b1220;
-      color:#e5e7eb;
-      border-radius:14px;
-      padding:12px;
-      min-height:220px;
-      overflow:auto;
-      font-size:12.5px;
-      line-height:1.45;
-    }
-    .small{min-height:160px}
-    footer{margin-top:14px;text-align:center;color:rgba(15,23,42,.55);font-size:12.5px}
-    @media(max-width:920px){main{grid-template-columns:1fr}header{align-items:flex-start}.right{display:none}}
-  </style>
+<style>
+:root{
+  --bg:#eef5ff;
+  --card:#ffffff;
+  --border:#e4edff;
+  --blue:#4f8df7;
+  --blue-soft:#7fb3ff;
+  --text:#1e293b;
+  --muted:#64748b;
+  --radius:20px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:linear-gradient(180deg,#f3f8ff 0%,#eef5ff 100%);
+  color:var(--text);
+}
+
+.container{
+  max-width:980px;
+  margin:60px auto;
+  padding:0 20px;
+}
+
+header{
+  text-align:center;
+  margin-bottom:40px;
+}
+
+h1{
+  margin:0;
+  font-size:34px;
+  font-weight:700;
+}
+
+.sub{
+  margin-top:8px;
+  color:var(--blue);
+  font-weight:600;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px;
+}
+
+.card h2{
+  margin:0 0 16px 0;
+  font-size:16px;
+  color:var(--blue);
+}
+
+.actions{
+  display:flex;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+button{
+  padding:10px 16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:white;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button.primary{
+  background:linear-gradient(180deg,var(--blue-soft),var(--blue));
+  color:white;
+  border:none;
+}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+  margin:8px 0 4px;
+  display:block;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:10px;
+}
+
+pre{
+  background:#0f172a;
+  color:#e2e8f0;
+  border-radius:16px;
+  padding:16px;
+  font-size:12px;
+  max-height:260px;
+  overflow:auto;
+}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>Projecte AT</h1>
-        <div class="sub">Rut Cabus · Karen Cabello</div>
-      </div>
-      <div class="right">
-        <span class="dot"></span>
-        <span>API base:</span>
-        <code id="basePath">api/</code>
-      </div>
-    </header>
 
-    <main>
-      <section class="card">
-        <div class="cardTop">
-          <h2>Accions</h2>
-          <div class="actions">
-            <button id="btnGetStations" class="primary">Get stations</button>
-            <button id="btnGetClients">Get clients</button>
-          </div>
-        </div>
+<div class="container">
 
-        <div style="margin-top:8px">
-          <div class="cardTop" style="margin-bottom:0">
-            <h2>Subscribe</h2>
-            <div class="actions">
-              <button id="btnSubscribe" class="primary">Subscribe</button>
-              <button id="btnClearSub">Clear</button>
-            </div>
-          </div>
+<header>
+  <h1>Projecte AT</h1>
+  <div class="sub">Rut Cabus · Karen Cabello</div>
+</header>
 
-          <label>Phone</label>
-          <input id="subPhone" placeholder="+346xxxxxxxx" autocomplete="tel" />
+<div class="layout">
 
-          <label>Stations IDs</label>
-          <input id="subStations" placeholder="12,34,56" />
+  <div class="card">
+    <h2>Accions</h2>
 
-          <div class="grid2">
-            <div>
-              <label>Telegram token</label>
-              <input id="subTgToken" placeholder="123:ABC..." />
-            </div>
-            <div>
-              <label>chat_id</label>
-              <input id="subChatId" placeholder="123456789" inputmode="numeric" />
-            </div>
-          </div>
+    <div class="actions">
+      <button id="btnGetStations" class="primary">Get stations</button>
+      <button id="btnGetClients">Get clients</button>
+    </div>
 
-          <label>Resposta subscribe</label>
-          <pre id="outSubscribe" class="small">{ }</pre>
-        </div>
-      </section>
+    <h2>Subscribe</h2>
 
-      <section class="card">
-        <div class="cardTop">
-          <h2>Output</h2>
-        </div>
-        <pre id="outMain">{ }</pre>
-      </section>
-    </main>
+    <label>Phone</label>
+    <input id="subPhone" placeholder="600111222">
 
-    <footer>Projecte AT</footer>
+    <label>Stations IDs</label>
+    <input id="subStations" placeholder="1,2,3">
 
-    <script src="js/ban.js"></script>
+    <label>Telegram token</label>
+    <input id="subTgToken" placeholder="123:ABC">
+
+    <label>chat_id</label>
+    <input id="subChatId" placeholder="123456789">
+
+    <div class="actions">
+      <button id="btnSubscribe" class="primary">Subscribe</button>
+      <button id="btnClearSub">Clear</button>
+    </div>
+
+    <pre id="outSubscribe">{ }</pre>
   </div>
+
+  <div class="card">
+    <h2>Output</h2>
+    <pre id="outMain">{ }</pre>
+  </div>
+
+</div>
+
+</div>
+
+<script src="js/ban.js"></script>
 </body>
 </html>
