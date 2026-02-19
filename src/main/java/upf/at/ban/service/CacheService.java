@@ -13,7 +13,7 @@ public class CacheService {
     // Crida a l'API de Bicing (a BicingService)
     private final BicingService bicingService;
 
-    // Llista d'estacions guardad
+    // Llista d'estacions guardada
     private List<Station> cachedStations = null;
 
     // Moment (timestamp) que es va actualitzar cache ultima vegada

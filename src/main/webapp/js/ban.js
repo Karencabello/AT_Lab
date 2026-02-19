@@ -103,8 +103,15 @@ function showSubscribeOutput(data) {
  */
 async function getStations() {
 
+  const phone = document.getElementById("subPhone").value.trim();
+
+  if (!phone) {
+    showMainOutput({ error: "Phone is required" });
+    return;
+  }
+
   try {
-    const resp = await fetch(ENDPOINTS.stations, {
+    const resp = await fetch(ENDPOINTS.stations + "/" + phone, {
       headers: { "Accept": "application/json" }
     });
 
@@ -117,6 +124,7 @@ async function getStations() {
     showMainOutput({ error: String(e) });
   }
 }
+
 
 
 /*
