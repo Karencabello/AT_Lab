@@ -14,22 +14,19 @@ public class TelegramService {
 
     // Enviar missatge a Telegram
     // RECORDATOR: el bot no rep missatges com un endpoint, sinó que el client ha de fer una petició POST a Telegram amb el missatge i el token del bot. Telegram s'encarrega d'entregar el missatge al bot.
-    public String sendMessage(String token, long chatId, String text){ 
+    public String sendMessage(String token, Message message){ 
         
-        // 1. Creem missatge
-        Message message = new Message(chatId, text);
-        
-        // 2. Creem client
+        // 1. Creem client
         Client client = ClientBuilder.newClient();
 
-        // 3. Creem URL
-        WebTarget targetSendMessage = client.target(Constants.TELEGRAM_API_URL + Constants.TELEGRAM_TOKEN).path("sendMessage");
+        // 2. Creem URL
+        WebTarget targetSendMessage = client.target(Constants.TELEGRAM_API_URL + token).path("sendMessage");
 
-        // 4. Fem petició POST
+        // 3. Fem petició POST
         String response = targetSendMessage.request(MediaType.APPLICATION_JSON_TYPE)
             .post(Entity.entity(message, MediaType.APPLICATION_JSON_TYPE), String.class);
 
-        // 5. Tan quem client
+        // 4. Tanquem client
         client.close();
         
         return response;

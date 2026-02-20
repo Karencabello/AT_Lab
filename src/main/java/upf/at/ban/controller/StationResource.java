@@ -23,6 +23,15 @@ public class StationResource {
     private static final CacheService cacheService = new CacheService();
     private static final ClientRepository clientRepository = ClientRepository.getInstance();
 
+    // Endpoint per obtenir totes les estacions
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAllStations(){
+        List<Station> stations = cacheService.getStationsCached();
+        return Response.ok(stations).build();
+    }
+    
+    // Endpoint per obtenir estacions seleccionades per un client
     @GET
     @Path("/{phone}")
     @Produces(MediaType.APPLICATION_JSON)

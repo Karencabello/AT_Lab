@@ -103,15 +103,8 @@ function showSubscribeOutput(data) {
  */
 async function getStations() {
 
-  const phone = document.getElementById("subPhone").value.trim();
-
-  if (!phone) {
-    showMainOutput({ error: "Phone is required" });
-    return;
-  }
-
   try {
-    const resp = await fetch(ENDPOINTS.stations + "/" + phone, {
+    const resp = await fetch(ENDPOINTS.stations, {   
       headers: { "Accept": "application/json" }
     });
 
