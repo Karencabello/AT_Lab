@@ -76,4 +76,6 @@ public class NotifierService {
         // 9. Retornem resposta
         return Response.ok().entity(telegramResponse).build();
     }
+
+    // TODO: Mètode per notify air quality (després) --> utilitzar ipgeoservice, aqiservice i telegramservice
 }

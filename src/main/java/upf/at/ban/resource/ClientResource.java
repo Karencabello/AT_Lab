@@ -1,4 +1,4 @@
-package upf.at.ban.controller;
+package upf.at.ban.resource;
 
 import java.util.Collection;
 
@@ -19,7 +19,10 @@ import upf.at.ban.service.AgeVerificationService;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClientResource {
 
+    // Repository per guardar i llegir clients
     private ClientRepository repository = ClientRepository.getInstance();  //guardar i llegir clients
+    
+    // Servei per validar edat
     private AgeVerificationService ageService = new AgeVerificationService(); //validar edat
 
     @GET
