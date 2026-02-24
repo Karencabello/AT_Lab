@@ -14,4 +14,9 @@ public class Constants{
     //Cache
     // Temps vida cache --> 120s en ms
     public static final long CACHE_TTL = 120_000;
+
+    //AQI service 
+    /* FALTA POSAR TOKEN I URL!! */
+    public static final String AQI_TOKEN = "EL_TEVA_TOKEN_AQICN";
+    public static final String AQI_API_URL = "https://api.waqi.info/feed/";
 }

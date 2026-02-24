@@ -7,6 +7,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import upf.at.ban.model.NotifierResponse;
 import upf.at.ban.service.NotifierService;
 
 /**
@@ -30,7 +31,30 @@ public class NotifierResource {
     @Path("/slots/{phone}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response notifySlots(@PathParam("phone") String phone) {
-        return notifierService.notifySlots(phone);
+        NotifierResponse result = notifierService.notifySlots(phone);
+
+        if ("ERROR".equals(result.getStatus())) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
+        }
+
+        return Response.ok(result).build();
+    }
+
+    /**
+     * GET /notifier/air/{phone}/{ip}
+     * Envia un missatge de Telegram amb la qualitat de l'aire
+     */
+    @GET
+    @Path("/air/{phone}/{ip}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response notifyAirQuality(@PathParam("phone") String phone, @PathParam("ip") String ip){
+        NotifierResponse result = notifierService.notifyAirQuality(phone, ip);
+
+        if ("ERROR".equals(result.getStatus())) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
+        }
+
+        return Response.ok(result).build();
     }
 
     // TODO: Endpoint per notify air quality (després)

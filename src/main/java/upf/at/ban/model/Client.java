@@ -1,6 +1,5 @@
 package upf.at.ban.model;
 
-
 import java.util.List;
 
 public class Client {
