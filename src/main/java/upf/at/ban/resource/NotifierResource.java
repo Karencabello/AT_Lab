@@ -57,5 +57,4 @@ public class NotifierResource {
         return Response.ok(result).build();
     }
 
-    // TODO: Endpoint per notify air quality (després)
-} /// CANVIAR PERQUE RETORNI OBJECTE JAVA QUAN ESTIGUI ACABAT !!!!
+} 

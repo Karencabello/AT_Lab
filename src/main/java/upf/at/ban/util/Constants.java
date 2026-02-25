@@ -16,7 +16,6 @@ public class Constants{
     public static final long CACHE_TTL = 120_000;
 
     //AQI service 
-    /* FALTA POSAR TOKEN I URL!! */
-    public static final String AQI_TOKEN = "EL_TEVA_TOKEN_AQICN";
     public static final String AQI_API_URL = "https://api.waqi.info/feed/";
+    public static final String AQI_TOKEN = "52ee51d269aa2fd66d9411a7a65d186736d9fe42";
 }

@@ -13,7 +13,8 @@ import javax.ws.rs.core.MediaType;
 public class TelegramService {
 
     // Enviar missatge a Telegram
-    // RECORDATOR: el bot no rep missatges com un endpoint, sinó que el client ha de fer una petició POST a Telegram amb el missatge i el token del bot. Telegram s'encarrega d'entregar el missatge al bot.
+    // RECORDATOR: el bot no rep missatges com un endpoint, sinó que el client ha de fer una petició POST a Telegram 
+    // amb el missatge i el token del bot. Telegram s'encarrega d'entregar el missatge al bot.
     public String sendMessage(String token, Message message){ 
         
         // 1. Creem client
