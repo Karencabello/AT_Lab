@@ -23,7 +23,8 @@
  * El que fem és eliminar l'últim slash
  * i afegir /api
  */
-const CONTEXT = window.location.pathname.replace(/\/$/, "");
+const PATH = window.location.pathname;
+const CONTEXT = PATH.replace(/\/[^\/]*$/, "").replace(/\/$/, "");
 const API_BASE = window.location.origin + CONTEXT + "/api";
 
 /*
@@ -32,7 +33,9 @@ const API_BASE = window.location.origin + CONTEXT + "/api";
 const ENDPOINTS = {
   stations: API_BASE + "/stations",
   clients: API_BASE + "/clients",
-  subscribe: API_BASE + "/clients/subscribe"
+  subscribe: API_BASE + "/clients/subscribe",
+  notifySlots: API_BASE + "/notifier/slots",
+  notifyAir: API_BASE + "/notifier/air"
 };
 
 
@@ -90,6 +93,12 @@ function showSubscribeOutput(data) {
   if (el) {
     el.textContent = JSON.stringify(data, null, 2);
   }
+}
+
+// Escriu resposta al panell de notificacions (slots/air)
+function showNotifyOutput(data) {
+  const el = document.getElementById("outNotify");
+  if (el) el.textContent = JSON.stringify(data, null, 2);
 }
 
 
@@ -181,7 +190,43 @@ async function subscribe() {
   }
 }
 
+/*
+ * POST /api/notifier/slots/{phone}
+ */ 
 
+async function notifySlots() {
+  try {
+    const phone = document.getElementById("notifyPhone").value.trim();
+    const resp = await fetch(ENDPOINTS.notifySlots + "/" + encodeURIComponent(phone), {
+      headers: { "Accept": "application/json" }
+    });
+    const text = await resp.text();
+    showNotifyOutput(safeJsonParse(text));
+  } catch (e) {
+    showNotifyOutput({ error: String(e) });
+  }
+}
+
+/*
+ * POST /api/notifier/air/{phone}/{ip}
+ */
+
+async function notifyAirQuality() {
+  try {
+    const phone = document.getElementById("notifyPhone").value.trim();
+    const ip = document.getElementById("notifyIp").value.trim();
+
+    const resp = await fetch(
+      ENDPOINTS.notifyAir + "/" + encodeURIComponent(phone) + "/" + encodeURIComponent(ip),
+      { headers: { "Accept": "application/json" } }
+    );
+
+    const text = await resp.text();
+    showNotifyOutput(safeJsonParse(text));
+  } catch (e) {
+    showNotifyOutput({ error: String(e) });
+  }
+}
 
 /* ==========================================================
    EVENT LISTENERS
@@ -195,3 +240,9 @@ document.getElementById("btnGetClients")
 
 document.getElementById("btnSubscribe")
   ?.addEventListener("click", subscribe);
+
+document.getElementById("btnNotifySlots")
+  ?.addEventListener("click", notifySlots);
+
+document.getElementById("btnNotifyAir")
+  ?.addEventListener("click", notifyAirQuality);

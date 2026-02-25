@@ -85,7 +85,7 @@ public class NotifierService {
         Message message = new Message(client.getChat_id(), mssg.toString());
 
         // 8. Enviem missatge a Telegram
-        String telegramResponse = telegramService.sendMessage(Constants.TELEGRAM_TOKEN, message);
+        String telegramResponse = telegramService.sendMessage(client.getTelegramToken(), message);
 
         if (telegramResponse == null || telegramResponse.contains("error")) {
             return new NotifierResponse("ERROR", "Failed to send Telegram notification");
@@ -131,8 +131,8 @@ public class NotifierService {
         Message message = new Message(client.getChat_id(), text);
 
         // 6. Enviar Telegram
-        telegramService.sendMessage(Constants.TELEGRAM_TOKEN, message);
-
+        telegramService.sendMessage(client.getTelegramToken(), message);
+        
         // 7. Retornar resposta
         return new NotifierResponse("OK", "Air quality notification sent successfully");
     }
