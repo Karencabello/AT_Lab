@@ -10,7 +10,6 @@ public class Constants{
     public static final String TELEGRAM_API_URL = "https://api.telegram.org/bot";   
     public static final String TELEGRAM_TOKEN = "8375476740:AAF16doZ1TCzUBtSSuV4u6xTOK8Od6YUPN4";
 
-
     //Cache
     // Temps vida cache --> 120s en ms
     public static final long CACHE_TTL = 120_000;

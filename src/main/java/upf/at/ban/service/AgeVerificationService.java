@@ -112,7 +112,8 @@ public class AgeVerificationService {
 
     // ------------- HELPERS -------------
 
-    private static String toLoginHint(String phone) {
+    // Revisa que el telefon estigui bé formatat i el converteix a "tel:+34666..." per passar-lo com login_hint
+    private static String toLoginHint(String phone) { 
         if (phone == null) throw new IllegalArgumentException("phone is null");
 
         String p = phone.trim();
@@ -128,12 +129,14 @@ public class AgeVerificationService {
         return "tel:" + p;
     }
 
+    // Crea el header de autenticación Basic a partir del clientId y clientSecret
     private static String basicAuthHeader(String clientId, String clientSecret) {
         String raw = clientId + ":" + clientSecret;
         String b64 = Base64.getEncoder().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
         return "Basic " + b64;
     }
 
+    // Lee el body de la respuesta de forma segura (si no es puede leer, devuelve "<no body>")
     private static String safeBody(Response r) {
         try { return r.readEntity(String.class); }
         catch (Exception e) { return "<no body>"; }
