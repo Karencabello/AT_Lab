@@ -19,4 +19,28 @@ public class Constants{
     /* FALTA POSAR TOKEN I URL!! */
     public static final String AQI_TOKEN = "EL_TEVA_TOKEN_AQICN";
     public static final String AQI_API_URL = "https://api.waqi.info/feed/";
+
+    // IpGeo service
+
+    // AgeVerification
+    public static final int MIN_AGE = 22; // Pq funiconi
+    // HOST BASE SANDBOX TELEFONICA
+    public static final String OGW_HOST = "https://sandbox.opengateway.telefonica.com/apigateway";
+
+    // 1. CIBA authorize --> reorna aauth_req_id
+    public static final String CIBA_AUTHORIZE_PATH = OGW_HOST + "/bc-authorize";
+
+    // 2. CIBA token --> retorna access_token
+    public static final String OGW_TOKEN_URL = OGW_HOST + "/token";
+    public static final String OGW_GRANT_TYPE = "urn:openid:params:grant-type:ciba";
+
+    // 3. Verify Age -> retorna ageCheck
+    public static final String OGW_VERIFY_URL = OGW_HOST + "/kyc-age-verification/v0.1/verify";
+
+    // 4. Scope requerit per a la verificació d'edat
+    public static final String OGW_SCOPE = "dpv:FraudPreventionAndDetection kyc-age-verification:verify";
+
+    // 5. Credencials
+    public static final String OGW_CLIENT_ID = "af639f1b-2626-443c-8122-5a87c4c9f1c0";
+    public static final String OGW_CLIENT_SECRET = "2b44dcac-5b08-442a-84cd-260c746665db";
 }

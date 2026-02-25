@@ -45,6 +45,13 @@
             <version>${jersey.version}</version>
         </dependency>
 
+        <!-- jersey-client per AGEVS -->
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
