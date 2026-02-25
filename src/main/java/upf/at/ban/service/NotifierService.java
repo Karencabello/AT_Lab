@@ -3,6 +3,7 @@ package upf.at.ban.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import upf.at.ban.model.AirQuality;
 import upf.at.ban.model.Client;
 import upf.at.ban.model.Message;
 import upf.at.ban.model.NotifierResponse;
@@ -86,6 +87,10 @@ public class NotifierService {
         // 8. Enviem missatge a Telegram
         String telegramResponse = telegramService.sendMessage(Constants.TELEGRAM_TOKEN, message);
 
+        if (telegramResponse == null || telegramResponse.contains("error")) {
+            return new NotifierResponse("ERROR", "Failed to send Telegram notification");
+        }
+
         // 9. Retornem resposta
         return new NotifierResponse("OK", "Notification sent successfully");
     }
@@ -115,13 +120,13 @@ public class NotifierService {
             return new NotifierResponse("ERROR", "Could not retrieve AQI data");
         }
 
-        // 4. Convertir AQI a nivell conceptual
-        String level = translateAqiLevel(aqi);
+        // 4. Creem objecte AirQuality
+        AirQuality airQuality = new AirQuality(city, aqi, translateAqiLevel(aqi));
 
         // 5. Construir missatge
-        String text = "Air Quality in " + city + ":\n"
-                + "AQI: " + aqi + "\n"
-                + "Level: " + level;
+        String text = "Air Quality in " + airQuality.getCity() + ":\n"
+                + "AQI: " + airQuality.getAqi() + "\n"
+                + "Level: " + airQuality.getLevel();
 
         Message message = new Message(client.getChat_id(), text);
 
