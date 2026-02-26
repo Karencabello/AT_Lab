@@ -11,6 +11,9 @@ import javax.ws.rs.core.MediaType;
 import upf.at.ban.model.Station;
 import upf.at.ban.service.CacheService;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 // No crida directament a bicing, sempre passa per cache 
 
 @Path("/stations")

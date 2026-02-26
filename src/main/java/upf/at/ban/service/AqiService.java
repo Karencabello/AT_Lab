@@ -10,7 +10,13 @@ import javax.ws.rs.core.MediaType;
 
 import upf.at.ban.util.Constants;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class AqiService {
+
+    // Logger per aquesta classe
+    private static final Logger logger = LogManager.getLogger(AqiService.class);
 
     public Integer getAqiByCity(String city) {
 
@@ -45,15 +51,20 @@ public class AqiService {
 
             //6. Convertim valor a enter
             if (aqiObj instanceof Integer) { 
-                return (Integer) aqiObj;
+                Integer aqi = (Integer) aqiObj;
+                logger.info("AQI ok city={} aqi={}", city, aqi);
+                return aqi;
             } else if (aqiObj instanceof Double) {
-                return ((Double) aqiObj).intValue();
+                Integer aqi = ((Double) aqiObj).intValue();
+                logger.info("AQI ok city={} aqi={}", city, aqi);
+                return aqi;
             } else {
                 return null;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("AQI error city={} err={}", city, e.toString());
             return null;
         } finally {
             client.close();

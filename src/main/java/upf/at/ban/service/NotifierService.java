@@ -9,7 +9,10 @@ import upf.at.ban.model.Message;
 import upf.at.ban.model.NotifierResponse;
 import upf.at.ban.model.Station;
 import upf.at.ban.repository.ClientRepository;
-import upf.at.ban.util.Constants;
+
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * NotifierService:
@@ -22,6 +25,9 @@ import upf.at.ban.util.Constants;
  */
 
 public class NotifierService {
+
+    // Logger per aquesta classe
+    private static final Logger logger = LogManager.getLogger(NotifierService.class);
 
     // Repositori per buscar clients
     private static final ClientRepository clientRepo = ClientRepository.getInstance();
@@ -41,15 +47,23 @@ public class NotifierService {
     // Envia slots disponibles al client indicat per phone
     public NotifierResponse notifySlots(String phone) {
 
+        logger.info("NOTIFY_SLOTS_START phone={}", phone);
+
         // 1. Buscar client pel phone
         Client client = clientRepo.getClientByPhone(phone);
-        if (client == null) return new NotifierResponse("ERROR", "Client not found");
-
+        if (client == null) {
+            logger.warn("NOTIFY_SLOTS_ERROR reason=client_not_found phone={}", phone);
+            return new NotifierResponse("ERROR", "Client not found");
+        }
         // 2. Mirem que tinguem chat_id
-        if (client.getChat_id() == null) return new NotifierResponse("ERROR", "Client has no chat_id");
+        if (client.getChat_id() == null) {
+            logger.warn("NOTIFY_SLOTS_ERROR reason=no_chat_id phone={}", phone);
+            return new NotifierResponse("ERROR", "Client has no chat_id");
+        }
 
         // 3. Mirem que el client tingui estacions subscrites
         if(client.getStationsIDs() == null || client.getStationsIDs().isEmpty()){
+            logger.warn("NOTIFY_SLOTS_ERROR reason=no_stations phone={}", phone);
             return new NotifierResponse("ERROR", "Client has no subscribed stations");
         }
 
@@ -57,6 +71,7 @@ public class NotifierService {
         List<Station> allStations = cacheService.getStationsCached();
 
         if (allStations == null || allStations.isEmpty()) {
+            logger.warn("NOTIFY_SLOTS_ERROR reason=no_station_data phone={}", phone);
             return new NotifierResponse("ERROR", "No station data available");
         }
 
@@ -66,9 +81,12 @@ public class NotifierService {
             .collect(Collectors.toList());
 
         if (subscribed.isEmpty()) {
+            logger.warn("NOTIFY_SLOTS_ERROR reason=no_matching_stations phone={}", phone);
             return new NotifierResponse("ERROR", "No matching stations found");
         }
 
+        logger.info("NOTIFY_SLOTS_BUILD phone={} subscribedStations={}", phone, subscribed.size());
+        
         // 6. Construir missatge
         StringBuilder mssg = new StringBuilder("Free slots at your subscribed stations:\n");
         for (Station s : subscribed){
@@ -88,8 +106,11 @@ public class NotifierService {
         String telegramResponse = telegramService.sendMessage(client.getTelegramToken(), message);
 
         if (telegramResponse == null || telegramResponse.contains("error")) {
+            logger.error("NOTIFY_SLOTS_ERROR reason=telegram_failed phone={} resp={}", phone, telegramResponse);
             return new NotifierResponse("ERROR", "Failed to send Telegram notification");
         }
+
+        logger.info("NOTIFY_SLOTS_OK phone={}", phone);
 
         // 9. Retornem resposta
         return new NotifierResponse("OK", "Notification sent successfully");
@@ -98,27 +119,35 @@ public class NotifierService {
     //Mètode per notify air quality (després) --> utilitzar ipgeoservice, aqiservice i telegramservice
     public NotifierResponse notifyAirQuality(String phone, String ip) {
 
+        logger.info("NOTIFY_AIR_START phone={} ip={}", phone, ip);
+
         // 1. Buscar client
         Client client = clientRepo.getClientByPhone(phone);
         if (client == null) {
+            logger.warn("NOTIFY_AIR_ERROR reason=client_not_found phone={}", phone);
             return new NotifierResponse("ERROR", "Client not found");
         }
 
         if (client.getChat_id() == null) {
+            logger.warn("NOTIFY_AIR_ERROR reason=no_chat_id phone={}", phone);
             return new NotifierResponse("ERROR", "Client has no chat_id");
         }
 
         // 2. Obtenir ciutat a partir de IP
         String city = ipGeoService.getCityByIp(ip);
         if (city == null || city.isEmpty()) {
+            logger.warn("NOTIFY_AIR_ERROR reason=city_not_found phone={} ip={}", phone, ip);
             return new NotifierResponse("ERROR", "Could not determine city from IP");
         }
 
         // 3. Obtenir AQI a partir de ciutat
         Integer aqi = aqiService.getAqiByCity(city);
         if (aqi == null) {
+            logger.warn("NOTIFY_AIR_ERROR reason=aqi_not_found phone={} city={}", phone, city);
             return new NotifierResponse("ERROR", "Could not retrieve AQI data");
         }
+
+        logger.info("NOTIFY_AIR_DATA phone={} city={} aqi={}", phone, city, aqi);
 
         // 4. Creem objecte AirQuality
         AirQuality airQuality = new AirQuality(city, aqi, translateAqiLevel(aqi));
@@ -134,6 +163,7 @@ public class NotifierService {
         telegramService.sendMessage(client.getTelegramToken(), message);
         
         // 7. Retornar resposta
+        logger.info("NOTIFY_AIR_OK phone={}", phone);
         return new NotifierResponse("OK", "Air quality notification sent successfully");
     }
 

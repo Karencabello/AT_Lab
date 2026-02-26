@@ -10,6 +10,10 @@ import javax.ws.rs.core.MediaType;
 import upf.at.ban.model.NotifierResponse;
 import upf.at.ban.service.NotifierService;
 
+import upf.at.ban.model.NotifierResponse;
+import upf.at.ban.service.NotifierService;
+
+
 /**
  * Notifier service (BAN API):
  * - notify slots

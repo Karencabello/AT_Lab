@@ -35,7 +35,8 @@ const ENDPOINTS = {
   clients: API_BASE + "/clients",
   subscribe: API_BASE + "/clients/subscribe",
   notifySlots: API_BASE + "/notifier/slots",
-  notifyAir: API_BASE + "/notifier/air"
+  notifyAir: API_BASE + "/notifier/air",
+  logs: API_BASE + "/logs"
 };
 
 
@@ -99,6 +100,12 @@ function showSubscribeOutput(data) {
 function showNotifyOutput(data) {
   const el = document.getElementById("outNotify");
   if (el) el.textContent = JSON.stringify(data, null, 2);
+}
+
+// Escriu logs (text/plain) a la secció de logs
+function showLogs(text) {
+  const el = document.getElementById("outLogs");
+  if (el) el.textContent = text;
 }
 
 
@@ -229,6 +236,23 @@ async function notifyAirQuality() {
 }
 
 /* ==========================================================
+   LOGS
+   ========================================================== */
+
+async function refreshLogs() {
+  try {
+    const lines = Number(document.getElementById("logLines")?.value || 200);
+    const resp = await fetch(ENDPOINTS.logs + "?lines=" + encodeURIComponent(lines), {
+      headers: { "Accept": "text/plain" }
+    });
+    const text = await resp.text();
+    showLogs(text);
+  } catch (e) {
+    showLogs("Error loading logs: " + String(e));
+  }
+}
+
+/* ==========================================================
    EVENT LISTENERS
    ========================================================== */
 
@@ -246,3 +270,9 @@ document.getElementById("btnNotifySlots")
 
 document.getElementById("btnNotifyAir")
   ?.addEventListener("click", notifyAirQuality);
+
+document.getElementById("btnRefreshLogs")
+  ?.addEventListener("click", refreshLogs);
+
+// carrega logs al començar (per veure ràpid que funciona)
+refreshLogs();

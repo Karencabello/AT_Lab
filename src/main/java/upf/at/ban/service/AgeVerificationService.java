@@ -15,25 +15,40 @@ import javax.ws.rs.core.Response;
 
 import upf.at.ban.util.Constants;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class AgeVerificationService {
 
+    // Logger per aquesta classe
+    private static final Logger logger = LogManager.getLogger(AgeVerificationService.class);
+    
     // ------------- PUBLIC (lo que llamas desde ClientResource) -------------
 
     public boolean isAdult(String phone) {
         String loginHint = toLoginHint(phone); // "tel:+346..."
+
+        logger.info("AGECHECK_START phone={}", phone);
 
         Client client = ClientBuilder.newClient();
         try {
             String basicAuth = basicAuthHeader(Constants.OGW_CLIENT_ID, Constants.OGW_CLIENT_SECRET);
 
             // CURL 1) bc-authorize -> auth_req_id
+            long t0 = System.currentTimeMillis(); // per veure quan triga cada pas als logs
             String authReqId = bcAuthorize(client, basicAuth, loginHint);
+            logger.debug("AGECHECK_STEP bc-authorize ok tookMs={}", (System.currentTimeMillis() - t0));
 
             // CURL 2) token -> access_token
+            t0 = System.currentTimeMillis();
             String accessToken = token(client, basicAuth, authReqId);
+            logger.debug("AGECHECK_STEP token ok tookMs={}", (System.currentTimeMillis() - t0));
 
             // CURL 3) verify -> ageCheck
-            return verifyAge(client, accessToken, Constants.MIN_AGE);
+            t0 = System.currentTimeMillis();
+            boolean ok = verifyAge(client, accessToken, Constants.MIN_AGE);
+            logger.info("AGECHECK_RESULT phone={} adult={} tookMs={}", phone, ok, (System.currentTimeMillis() - t0));
+            return ok;
 
         } finally {
             client.close();

@@ -6,9 +6,15 @@ import java.util.Map;
 
 import upf.at.ban.model.Client;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 // guarda clients per phone
 
 public class ClientRepository{
+
+    private static final Logger logger = LogManager.getLogger(ClientRepository.class);
+
     //Utilitzem Map(key(string)=num telf, value = Client)
     private static Map<String, Client> clients = new HashMap<>(); 
 
@@ -22,6 +28,8 @@ public class ClientRepository{
 
     public void addClient(Client client){
         clients.put(client.getPhone(), client);
+        // log
+        logger.info("Client subscribed phone={}", client.getPhone());
     }
 
     //utilitzem collection per que clients és un HashMap
@@ -31,7 +39,10 @@ public class ClientRepository{
     }
 
     public Client getClientByPhone(String phone){
-        return clients.get(phone); 
+        // log
+        Client c = clients.get(phone);
+        logger.debug("CLIENT_GET phone={} found={}", phone, (c != null));
+        return c; 
     }
 
 }

@@ -6,9 +6,15 @@ import upf.at.ban.model.Data;
 import upf.at.ban.model.Station;
 import upf.at.ban.util.Constants;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 // Si cache buida o han passat 120s --> crida a BicingService i actualitza
 // Si no --> retorna cache sense tocar Bicing
 public class CacheService {
+
+    // Logger per aquesta classe
+    private static final Logger logger = LogManager.getLogger(CacheService.class);
 
     // Crida a l'API de Bicing (a BicingService)
     private final BicingService bicingService;
@@ -38,6 +44,10 @@ public class CacheService {
 
         // Si la cache està buida o ha caducat
         if (cacheEmpty || cacheExpired){
+            logger.info("CACHE_MISS empty={} expired={} ageMs={} ttlMs={}", cacheEmpty, cacheExpired, (now - cache_ts), Constants.CACHE_TTL);
+            
+            long t0 = System.currentTimeMillis();
+
             // 1. Demanem a Bicing
             Data data = bicingService.getStations();
 
@@ -46,6 +56,10 @@ public class CacheService {
             
             // 3. guardem el moment actual com a timestamp
             cache_ts = now;
+            logger.info("CACHE_REFRESH stations={} tookMs={}", cachedStations.size(), (System.currentTimeMillis() - t0));
+        }
+        else {
+            logger.debug("CACHE_HIT stations={} ageMs={}", cachedStations.size(), (now - cache_ts));
         }
 
         // Retornem llista

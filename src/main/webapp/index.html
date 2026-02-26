@@ -281,6 +281,24 @@ a:hover{ text-decoration: underline; }
     </div>
 
   </div>
+
+  <!-- LOGS (al final) -->
+  <div class="card" style="margin-top:28px;">
+    <div class="section-title">Application logs</div>
+    <div class="small">
+      Mostra les traces del backend des del fitxer de log. Per la demo és útil; més endavant ho pots millorar (filtre, cerca, nivells...).
+    </div>
+
+    <div class="actions">
+      <button id="btnRefreshLogs" class="primary">Refresh logs</button>
+      <label style="display:flex; align-items:center; gap:10px; margin:0;">
+        <span style="color:var(--muted); font-size:13px;">Lines</span>
+        <input id="logLines" value="200" style="width:120px;" />
+      </label>
+    </div>
+
+    <pre id="outLogs">(loading...)</pre>
+  </div>
 </div>
 
 <script src="js/ban.js"></script>

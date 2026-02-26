@@ -9,8 +9,13 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class BicingService {
+
+    // Logger per aquesta classe
+    private static final Logger logger = LogManager.getLogger(BicingService.class);
 
     public Data getStations(){
         
@@ -19,6 +24,8 @@ public class BicingService {
         
         // 2. Creem URL
         WebTarget target = client.target(Constants.BICING_URL).path(Constants.BICING_PATH);
+        logger.info("BICING_CALL {}{}", Constants.BICING_URL, Constants.BICING_PATH);
+
 
         // 3. Fem petició GET
         // - Accept: aplicació/JSON

@@ -8,7 +8,15 @@ import javax.ws.rs.core.GenericType;
 
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+
 public class IpGeoService {
+
+    // Logger per aquesta classe
+    private static final Logger logger = LogManager.getLogger(IpGeoService.class);
+
     //URL base de l’API pública
     private static final String IP_API_URL = "http://ip-api.com/json/";
 
@@ -41,10 +49,13 @@ public class IpGeoService {
             if (!"success".equals(status)) return null;
 
             //6. Extraiem el camp "city" del JSON
-            return (String) response.get("city");
+            String city = (String) response.get("city");
+            logger.info("IP_GEO ok ip={} city={}", ip, city);
+            return city;
 
         } catch (Exception e) { //gestió error
             e.printStackTrace();
+            logger.error("IP_GEO error ip={} err={}", ip, e.toString());
             return null;
         } finally {
             client.close();
