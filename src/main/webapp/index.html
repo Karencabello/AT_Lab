@@ -1,318 +1,252 @@
 <!doctype html>
-<html lang="ca">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BAN Dashboard · AT</title>
-
-<style>
-:root{
-  --bg1:#0f172a;
-  --bg2:#111827;
-  --card:#1e293b;
-  --accent:#3b82f6;
-  --accent-soft:#60a5fa;
-  --border:#334155;
-  --text:#f1f5f9;
-  --muted:#94a3b8;
-  --radius:18px;
-}
-
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
-  background:radial-gradient(circle at 20% 20%,#1e3a8a 0%,#0f172a 60%);
-  color:var(--text);
-  min-height:100vh;
-}
-
-/* HEADER */
-.header{
-  padding:70px 20px 40px;
-  text-align:center;
-}
-.header h1{
-  margin:0;
-  font-size:42px;
-  font-weight:700;
-  letter-spacing:.5px;
-}
-.header .authors{
-  margin-top:10px;
-  font-size:14px;
-  color:var(--accent-soft);
-  letter-spacing:.3px;
-}
-.header .subtitle{
-  margin:14px auto 0;
-  max-width:900px;
-  color:var(--muted);
-  line-height:1.5;
-  font-size:14px;
-}
-
-/* LAYOUT */
-.container{
-  max-width:1200px;
-  margin:0 auto 70px;
-  padding:0 24px;
-}
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:28px;
-}
-@media (max-width: 980px){
-  .grid{ grid-template-columns:1fr; }
-}
-
-/* CARD */
-.card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:28px;
-  backdrop-filter:blur(8px);
-  box-shadow:0 20px 60px rgba(0,0,0,.35);
-  transition:.3s ease;
-}
-.card:hover{ transform:translateY(-3px); }
-
-.section-title{
-  font-size:18px;
-  margin:4px 0 16px;
-  color:var(--accent-soft);
-}
-
-.small{
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.5;
-  margin-top:-8px;
-  margin-bottom:10px;
-}
-
-/* BUTTONS */
-.actions{
-  display:flex;
-  gap:12px;
-  margin:14px 0 22px;
-  flex-wrap:wrap;
-}
-button{
-  border:none;
-  padding:11px 18px;
-  border-radius:12px;
-  font-weight:600;
-  cursor:pointer;
-  background:#0f172a;
-  color:var(--text);
-  border:1px solid var(--border);
-  transition:.2s ease;
-}
-button.primary{
-  background:linear-gradient(135deg,var(--accent),#1d4ed8);
-  color:white;
-  border:none;
-}
-button:hover{
-  box-shadow:0 8px 30px rgba(59,130,246,.35);
-  transform:translateY(-1px);
-}
-
-/* FORM */
-label{
-  display:block;
-  margin-top:14px;
-  margin-bottom:6px;
-  font-size:13px;
-  color:var(--muted);
-}
-input{
-  width:100%;
-  padding:12px 14px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:#0f172a;
-  color:var(--text);
-  font-size:14px;
-  outline:none;
-}
-input:focus{ border-color:var(--accent-soft); }
-
-/* OUTPUT */
-pre{
-  margin-top:16px;
-  background:#0b1220;
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:14px;
-  overflow:auto;
-  min-height:120px;
-  max-height:340px;
-  color:#e2e8f0;
-}
-
-hr{
-  border:none;
-  border-top:1px solid var(--border);
-  margin:22px 0;
-  opacity:.9;
-}
-
-.badge{
-  display:inline-block;
-  font-size:12px;
-  color:#cbd5e1;
-  background:#0b1220;
-  border:1px solid var(--border);
-  padding:6px 10px;
-  border-radius:999px;
-  margin-top:6px;
-}
-
-.footer{
-  text-align:center;
-  margin-top:24px;
-  color:var(--muted);
-  font-size:13px;
-}
-a{ color: var(--accent-soft); text-decoration: none; }
-a:hover{ text-decoration: underline; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SkyBlue Ops · BAN</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="./js/ban.js"></script>
 </head>
 
 <body>
-
-<div class="header">
-  <h1>BAN Dashboard</h1>
-  <div class="authors">Rut Cabus · Karen Cabello</div>
-  <div class="subtitle">
-    Panell per fer peticions <b>GET/POST amb AJAX</b> a la BAN API (Stations, Clients, Subscribe i Notifier),
-    tal com demana l’enunciat del projecte.
-  </div>
-  <div class="badge">Ruta API: <span id="apiBaseHint">(auto)</span></div>
-</div>
-
-<div class="container">
-  <div class="grid">
-
-    <!-- LEFT: Controls + Forms -->
-    <div class="card">
-      <div class="section-title">API Controls</div>
-      <div class="small">Botons per consultar l’estat del servei.</div>
-
-      <div class="actions">
-        <button id="btnGetStations" class="primary">Get stations</button>
-        <button id="btnGetClients">Get clients</button>
-      </div>
-
-      <hr>
-
-      <div class="section-title">Subscribe Client</div>
-      <div class="small">
-        Crea un client i el subscriu a stations. Requereix <b>phone</b>, <b>stationsIDs</b>, <b>telegramToken</b> i <b>chat_id</b>.
-      </div>
-
-      <label>Phone</label>
-      <input id="subPhone" placeholder="+346xxxxxxxx">
-
-      <label>Stations IDs (CSV)</label>
-      <input id="subStations" placeholder="1,2,3">
-
-      <label>Telegram token (bot)</label>
-      <input id="subTgToken" placeholder="123456:ABCDEF...">
-
-      <label>chat_id</label>
-      <input id="subChatId" placeholder="123456789">
-
-      <div class="actions" style="margin-top:18px;">
-        <button id="btnSubscribe" class="primary">Subscribe</button>
-      </div>
-
-      <pre id="outSubscribe">{ }</pre>
-
-      <hr>
-
-      <div class="section-title">Notifier</div>
-      <div class="small">
-        Envia missatges via Telegram al client ja subscrit.
-        <br>• <b>Notify slots</b>: free docks de les stations del client
-        <br>• <b>Notify air</b>: AQI segons IP
-      </div>
-
-      <label>Phone (client subscrit)</label>
-      <input id="notifyPhone" placeholder="+346xxxxxxxx">
-
-      <label>IP (per AQI)</label>
-      <input id="notifyIp" placeholder="1.2.3.4">
-
-      <div class="actions" style="margin-top:18px;">
-        <button id="btnNotifySlots" class="primary">Notify slots</button>
-        <button id="btnNotifyAir">Notify air quality</button>
-      </div>
-
-      <pre id="outNotify">{ }</pre>
-    </div>
-
-    <!-- RIGHT: Main Output -->
-    <div class="card">
-      <div class="section-title">Response Output</div>
-      <div class="small">
-        Aquí es mostren les respostes de <b>Get stations</b> i <b>Get clients</b>.
-      </div>
-      <pre id="outMain">{ }</pre>
-
-      <hr>
-
-      <div class="section-title">Quick tips (Telegram)</div>
-      <div class="small">
-        Per obtenir el teu <b>chat_id</b>:
-        <br>1) Escriu al teu bot a Telegram (start/hi)
-        <br>2) Obre: <code style="color:#e2e8f0;">https://api.telegram.org/botTOKEN/getUpdates</code>
-        <br>3) Cerca <code style="color:#e2e8f0;">"chat":{"id": ...}</code>
-      </div>
-
-      <div class="footer">
-        BAN API · Aplicacions Telemàtiques
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">SB</div>
+      <div>
+        <h1>SkyBlue Ops</h1>
+        <p>Bicing Availability & Notifier</p>
       </div>
     </div>
 
-  </div>
+    <div class="statusbar">
+      <div class="chip" title="API base autodetected">
+        <span class="dot"></span>
+        <span>API:</span>
+        <code id="apiBaseHint">(auto)</code>
+      </div>
 
-  <!-- LOGS (al final) -->
-  <div class="card" style="margin-top:28px;">
-    <div class="section-title">Application logs</div>
-    <div class="small">
-      Mostra les traces del backend des del fitxer de log. Per la demo és útil; més endavant ho pots millorar (filtre, cerca, nivells...).
+      <a class="tgBtn" href="https://t.me/AppsTelem_bot" target="_blank" rel="noreferrer">
+        Open Telegram bot →
+      </a>
     </div>
+  </header>
 
-    <div class="actions">
-      <button id="btnRefreshLogs" class="primary">Refresh logs</button>
-      <label style="display:flex; align-items:center; gap:10px; margin:0;">
-        <span style="color:var(--muted); font-size:13px;">Lines</span>
-        <input id="logLines" value="200" style="width:120px;" />
-      </label>
-    </div>
+  <main class="wrap">
+    <!-- Hero -->
+    <section class="hero">
+      <div>
+        <h2>Control panel</h2>
+        <p>Stations, clients, subscriptions, notifications, and live logs.</p>
+      </div>
 
-    <pre id="outLogs">(loading...)</pre>
-  </div>
-</div>
+      <div class="heroActions">
+        <button class="primary" id="btnGetStations">Get stations</button>
+        <button class="secondary" id="btnGetClients">Get clients</button>
+        <button class="ghost" id="btnClearOutput">Clear output</button>
+      </div>
+    </section>
 
-<script src="js/ban.js"></script>
-<script>
-  // Mostrem la ruta base que està calculant el JS (per debug ràpid)
-  (function(){
-    try{
-      const PATH = window.location.pathname;
-      const CONTEXT = PATH.replace(/\/[^\/]*$/, "").replace(/\/$/, "");
-      const API_BASE = window.location.origin + CONTEXT + "/api";
-      document.getElementById("apiBaseHint").textContent = API_BASE;
-    }catch(e){}
-  })();
-</script>
+    <section class="grid">
+      <!-- LEFT: Stations -->
+      <section class="card">
+        <div class="cardTop">
+          <div>
+            <h3>Stations</h3>
+            <p>Browse live station availability. Subscribe from the right panel.</p>
+          </div>
 
+          <div class="cardActions">
+            <input id="stationSearch" class="pillInput" placeholder="Search by name or id…" />
+            <button class="ghost" id="btnFilterInService" title="Toggle filter">In service</button>
+            <button class="ghost" id="btnFilterLowBikes" title="Toggle filter">Low bikes</button>
+          </div>
+        </div>
+
+        <div class="kpis" id="kpis">
+          <div class="kpi">
+            <div class="kpiLabel">Stations</div>
+            <div class="kpiValue" id="kpiStations">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpiLabel">Total bikes</div>
+            <div class="kpiValue" id="kpiBikes">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpiLabel">Free docks</div>
+            <div class="kpiValue" id="kpiDocks">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpiLabel">Avg occupancy</div>
+            <div class="kpiValue" id="kpiOcc">—</div>
+          </div>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Bikes</th>
+                <th>Docks</th>
+                <th>Occupancy</th>
+              </tr>
+            </thead>
+            <tbody id="stationsTbody">
+              <tr><td colspan="6" class="empty">No data yet. Click “Get stations”.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details class="drawer">
+          <summary>Raw response</summary>
+          <pre class="out" id="outMain">{ }</pre>
+        </details>
+      </section>
+
+      <!-- RIGHT: Session + Subscribe + Notifier -->
+      <section class="card">
+        <div class="cardTop">
+          <div>
+            <h3>My session</h3>
+            <p>Use your phone as a lightweight login to show subscriptions.</p>
+          </div>
+        </div>
+
+        <div class="form">
+          <div class="field">
+            <label>Phone</label>
+            <input id="sessPhone" placeholder="+34…" />
+          </div>
+          <div class="row">
+            <button class="primary" id="btnSaveSession">Save session</button>
+            <button class="ghost" id="btnClearSession">Log out</button>
+          </div>
+
+          <div class="subSection">
+            <div class="subTitle">My subscriptions</div>
+            <div class="subHint" id="mySubsHint">Set a phone to view your subscribed stations after you subscribe.</div>
+            <div class="subsChips" id="mySubsChips"></div>
+          </div>
+        </div>
+
+        <hr class="hr" />
+
+        <div class="cardTop">
+          <div>
+            <h3>Subscribe client</h3>
+            <p>Create client and set stations.</p>
+          </div>
+        </div>
+
+        <div class="form">
+          <div class="field">
+            <label>Phone</label>
+            <input id="subPhone" placeholder="+34…" />
+          </div>
+
+          <div class="field">
+            <label>Stations IDs (CSV)</label>
+            <input id="subStations" placeholder="1,2,3" />
+          </div>
+
+          <div class="two">
+            <div class="field">
+              <label>Telegram token</label>
+              <input id="subTgToken" placeholder="123456:ABC…" />
+            </div>
+            <div class="field">
+              <label>chat_id</label>
+              <input id="subChatId" placeholder="123456789" />
+            </div>
+          </div>
+
+          <button class="primary" id="btnSubscribe">Subscribe</button>
+
+          <details class="drawer">
+            <summary>Subscribe response</summary>
+            <pre class="out small" id="outSubscribe">{ }</pre>
+          </details>
+        </div>
+
+        <hr class="hr" />
+
+        <div class="cardTop">
+          <div>
+            <h3>Notifier</h3>
+            <p>Send Telegram notifications for your subscribed client.</p>
+          </div>
+        </div>
+
+        <div class="form">
+          <div class="field">
+            <label>Phone</label>
+            <input id="notifyPhone" placeholder="+34…" />
+          </div>
+          <div class="field">
+            <label>IP (for AQI)</label>
+            <input id="notifyIp" placeholder="1.2.3.4" />
+          </div>
+
+          <div class="row">
+            <button class="primary" id="btnNotifySlots">Notify slots</button>
+            <button class="secondary" id="btnNotifyAir">Notify air</button>
+          </div>
+
+          <details class="drawer">
+            <summary>Notifier response</summary>
+            <pre class="out small" id="outNotify">{ }</pre>
+          </details>
+        </div>
+      </section>
+
+      <!-- RIGHT bottom: Clients list -->
+      <section class="card">
+        <div class="cardTop">
+          <div>
+            <h3>Clients</h3>
+            <p>Latest loaded from API.</p>
+          </div>
+          <div class="cardActions">
+            <button class="ghost" id="btnRefreshFromClients">Refresh “My subscriptions”</button>
+          </div>
+        </div>
+
+        <div class="clientsWrap" id="clientsWrap">
+          <div class="empty">No clients loaded. Click “Get clients”.</div>
+        </div>
+
+        <details class="drawer">
+          <summary>Raw clients response</summary>
+          <pre class="out small" id="outClientsRaw">{ }</pre>
+        </details>
+      </section>
+    </section>
+
+    <!-- LOGS at the end -->
+    <section class="card logsCard">
+      <div class="cardTop">
+        <div>
+          <h3>Logs</h3>
+          <p>Backend application logs.</p>
+        </div>
+        <div class="cardActions">
+          <label class="inlineLabel">
+            <span>Lines</span>
+            <input id="logLines" value="200" class="miniInput" />
+          </label>
+          <button class="primary" id="btnRefreshLogs">Refresh logs</button>
+        </div>
+      </div>
+
+      <pre class="out" id="outLogs">(loading…)</pre>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/ban.js"></script>
 </body>
 </html>

@@ -11,25 +11,11 @@
  *  - Això permet que funcioni en local i en Docker sense canvis
  **********************************************************************/
 
-
-/* ==========================================================
-   CONFIGURACIÓ DE L'API
-   ========================================================== */
-
-/*
- * window.location.pathname pot ser:
- *   /AT_Lab/
- *
- * El que fem és eliminar l'últim slash
- * i afegir /api
- */
+// ========= API base autodetect (same idea as yours) =========
 const PATH = window.location.pathname;
 const CONTEXT = PATH.replace(/\/[^\/]*$/, "").replace(/\/$/, "");
 const API_BASE = window.location.origin + CONTEXT + "/api";
 
-/*
- * Definim els endpoints reals del backend
- */
 const ENDPOINTS = {
   stations: API_BASE + "/stations",
   clients: API_BASE + "/clients",
@@ -39,28 +25,19 @@ const ENDPOINTS = {
   logs: API_BASE + "/logs"
 };
 
+document.getElementById("apiBaseHint").textContent = API_BASE;
 
+// ========= State =========
+let stationsCache = [];
+let clientsCache = [];
+let filterInService = false;
+let filterLowBikes = false;
 
-/* ==========================================================
-   FUNCIONS UTILITÀRIES
-   ========================================================== */
-
-/*
- * Intenta parsejar text com JSON.
- * Si el backend retorna HTML (error 404/500),
- * evitem que el JS peti.
- */
+// ========= Utils =========
 function safeJsonParse(text) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { raw: text };
-  }
+  try { return JSON.parse(text); } catch { return { raw: text }; }
 }
 
-/*
- * Converteix "12,34,56" → [12, 34, 56]
- */
 function parseStationsIds(csv) {
   return (csv || "")
     .split(",")
@@ -70,209 +47,359 @@ function parseStationsIds(csv) {
     .filter(n => !Number.isNaN(n));
 }
 
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
 
+function toast(msg) {
+  const el = document.getElementById("toast");
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add("show");
+  window.clearTimeout(toast._t);
+  toast._t = window.setTimeout(() => el.classList.remove("show"), 2600);
+}
 
-/* ==========================================================
-   MOSTRAR RESULTATS
-   ========================================================== */
+function normalize(s){ return String(s || "").toLowerCase(); }
 
-/*
- * Escriu resposta al panell principal
- */
-function showMainOutput(data) {
-  const el = document.getElementById("outMain");
-  if (el) {
-    el.textContent = JSON.stringify(data, null, 2);
+function stationTotals(stations) {
+  let bikes = 0, docks = 0, total = 0, occSum = 0, occCount = 0;
+  for (const st of stations) {
+    const b = Number(st.bikes ?? st.num_bikes_available ?? st.bikesAvailable ?? 0);
+    const d = Number(st.docks ?? st.num_docks_available ?? st.docksAvailable ?? 0);
+    const t = Number(st.totalDocks ?? st.num_docks ?? st.capacity ?? (b + d) ?? 0);
+    bikes += b;
+    docks += d;
+    total += (t || (b + d));
+    const denom = (t || (b + d));
+    if (denom > 0) { occSum += (b / denom); occCount += 1; }
+  }
+  const occ = occCount ? Math.round((occSum / occCount) * 100) : 0;
+  return { bikes, docks, total, occ };
+}
+
+// ========= Render: raw outputs =========
+function showOut(id, data) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+// ========= Render: stations table =========
+function getStationField(st, keys, fallback = "") {
+  for (const k of keys) {
+    if (st && st[k] !== undefined && st[k] !== null) return st[k];
+  }
+  return fallback;
+}
+
+function renderStations() {
+  const tbody = document.getElementById("stationsTbody");
+  if (!tbody) return;
+
+  const q = normalize(document.getElementById("stationSearch")?.value || "");
+
+  let list = [...stationsCache];
+
+  if (filterInService) {
+    list = list.filter(s => normalize(getStationField(s, ["status", "station_status"])) === "in_service");
+  }
+
+  if (filterLowBikes) {
+    list = list.filter(s => Number(getStationField(s, ["bikes", "num_bikes_available", "bikesAvailable"], 0)) <= 2);
+  }
+
+  if (q) {
+    list = list.filter(s => {
+      const id = String(getStationField(s, ["id", "station_id", "stationId"], ""));
+      const name = normalize(getStationField(s, ["name", "station_name"], ""));
+      return id.includes(q) || name.includes(q);
+    });
+  }
+
+  // KPIs based on displayed list
+  const totals = stationTotals(list);
+  setText("kpiStations", String(list.length));
+  setText("kpiBikes", String(totals.bikes));
+  setText("kpiDocks", String(totals.docks));
+  setText("kpiOcc", totals.occ + "%");
+
+  tbody.innerHTML = "";
+
+  if (!list.length) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="6" class="empty">No stations match your filters.</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+
+  for (const st of list) {
+    const id = getStationField(st, ["id", "station_id", "stationId"], "");
+    const name = getStationField(st, ["name", "station_name"], "—");
+    const status = getStationField(st, ["status", "station_status"], "—");
+    const bikes = Number(getStationField(st, ["bikes", "num_bikes_available", "bikesAvailable"], 0));
+    const docks = Number(getStationField(st, ["docks", "num_docks_available", "docksAvailable"], 0));
+    const total = Number(getStationField(st, ["totalDocks", "num_docks", "capacity"], bikes + docks));
+    const occ = total > 0 ? Math.round((bikes / total) * 100) : 0;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${id}</td>
+      <td>${escapeHtml(name)}</td>
+      <td><span class="badge">${escapeHtml(status)}</span></td>
+      <td>${bikes}</td>
+      <td>${docks}</td>
+      <td>${occ}%</td>
+    `;
+    tbody.appendChild(tr);
   }
 }
 
-/*
- * Escriu resposta al panell de subscribe
- */
-function showSubscribeOutput(data) {
-  const el = document.getElementById("outSubscribe");
-  if (el) {
-    el.textContent = JSON.stringify(data, null, 2);
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[s]));
+}
+
+// ========= Render: clients cards =========
+function renderClients() {
+  const wrap = document.getElementById("clientsWrap");
+  if (!wrap) return;
+
+  wrap.innerHTML = "";
+  if (!clientsCache.length) {
+    wrap.innerHTML = `<div class="empty">No clients loaded. Click “Get clients”.</div>`;
+    return;
+  }
+
+  for (const c of clientsCache) {
+    const phone = c.phone ?? "—";
+    const stations = Array.isArray(c.stationsIDs) ? c.stationsIDs : [];
+    const card = document.createElement("div");
+    card.className = "clientCard";
+    card.innerHTML = `
+      <div class="top">
+        <div><strong>${escapeHtml(phone)}</strong></div>
+        <div class="badge">${stations.length} stations</div>
+      </div>
+      <div class="meta">
+        <span>chat_id: ${escapeHtml(c.chat_id ?? "—")}</span>
+        <span>tg token: ${c.telegramToken ? "✓ set" : "—"}</span>
+      </div>
+    `;
+    wrap.appendChild(card);
   }
 }
 
-// Escriu resposta al panell de notificacions (slots/air)
-function showNotifyOutput(data) {
-  const el = document.getElementById("outNotify");
-  if (el) el.textContent = JSON.stringify(data, null, 2);
+// ========= Session + subscriptions =========
+const SESSION_KEY = "ban_session_phone";
+
+function loadSession() {
+  const phone = localStorage.getItem(SESSION_KEY) || "";
+  const sessInput = document.getElementById("sessPhone");
+  if (sessInput) sessInput.value = phone;
+  updateMySubscriptions();
 }
 
-// Escriu logs (text/plain) a la secció de logs
-function showLogs(text) {
-  const el = document.getElementById("outLogs");
-  if (el) el.textContent = text;
+function saveSession() {
+  const phone = document.getElementById("sessPhone")?.value.trim() || "";
+  localStorage.setItem(SESSION_KEY, phone);
+  toast(phone ? "Session saved." : "Session cleared.");
+  updateMySubscriptions();
 }
 
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+  const sessInput = document.getElementById("sessPhone");
+  if (sessInput) sessInput.value = "";
+  toast("Logged out.");
+  updateMySubscriptions();
+}
 
+function updateMySubscriptions() {
+  const phone = localStorage.getItem(SESSION_KEY) || "";
+  const hint = document.getElementById("mySubsHint");
+  const chips = document.getElementById("mySubsChips");
+  if (!chips || !hint) return;
 
-/* ==========================================================
-   API CALLS
-   ========================================================== */
+  chips.innerHTML = "";
 
-/*
- * GET /api/stations
- */
+  if (!phone) {
+    hint.textContent = "Set a phone to view your subscribed stations after you subscribe.";
+    return;
+  }
+
+  const client = clientsCache.find(c => (c.phone || "").trim() === phone.trim());
+  if (!client) {
+    hint.textContent = "No client found for this phone (load clients or subscribe first).";
+    return;
+  }
+
+  const stations = Array.isArray(client.stationsIDs) ? client.stationsIDs : [];
+  if (!stations.length) {
+    hint.textContent = "You have no stations subscribed.";
+    return;
+  }
+
+  hint.textContent = "Subscribed station IDs:";
+  for (const id of stations) {
+    const pill = document.createElement("div");
+    pill.className = "chipPill";
+    pill.textContent = String(id);
+    chips.appendChild(pill);
+  }
+}
+
+// ========= API calls =========
 async function getStations() {
-
   try {
-    const resp = await fetch(ENDPOINTS.stations, {   
-      headers: { "Accept": "application/json" }
-    });
-
+    const resp = await fetch(ENDPOINTS.stations, { headers: { "Accept":"application/json" } });
     const text = await resp.text();
     const data = safeJsonParse(text);
+    showOut("outMain", data);
 
-    showMainOutput(data);
-
+    stationsCache = Array.isArray(data) ? data : (Array.isArray(data?.stations) ? data.stations : []);
+    renderStations();
+    toast(`Stations loaded: ${stationsCache.length}`);
   } catch (e) {
-    showMainOutput({ error: String(e) });
+    showOut("outMain", { error: String(e) });
+    toast("Error loading stations.");
   }
 }
 
-
-
-/*
- * GET /api/clients
- */
 async function getClients() {
-
   try {
-    const resp = await fetch(ENDPOINTS.clients, {
-      headers: { "Accept": "application/json" }
-    });
-
+    const resp = await fetch(ENDPOINTS.clients, { headers: { "Accept":"application/json" } });
     const text = await resp.text();
     const data = safeJsonParse(text);
 
-    showMainOutput(data);
-
+    showOut("outClientsRaw", data);
+    clientsCache = Array.isArray(data) ? data : (Array.isArray(data?.clients) ? data.clients : []);
+    renderClients();
+    updateMySubscriptions();
+    toast(`Clients loaded: ${clientsCache.length}`);
   } catch (e) {
-    showMainOutput({ error: String(e) });
+    showOut("outClientsRaw", { error: String(e) });
+    toast("Error loading clients.");
   }
 }
 
-
-/*
- * POST /api/clients/subscribe
- */
 async function subscribe() {
-
-  /*
-   * Construïm el JSON que espera el backend.
-   * Ha de coincidir EXACTAMENT amb el model Client.java
-   */
+  const phone = document.getElementById("subPhone")?.value.trim() || "";
   const payload = {
-    phone: document.getElementById("subPhone").value.trim(),
-    stationsIDs: parseStationsIds(
-      document.getElementById("subStations").value
-    ),
-    telegramToken: document.getElementById("subTgToken").value.trim(),
-    chat_id: Number(
-      document.getElementById("subChatId").value.trim()
-    )
+    phone,
+    stationsIDs: parseStationsIds(document.getElementById("subStations")?.value || ""),
+    telegramToken: (document.getElementById("subTgToken")?.value || "").trim(),
+    chat_id: Number((document.getElementById("subChatId")?.value || "").trim())
   };
 
   try {
     const resp = await fetch(ENDPOINTS.subscribe, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
+      method:"POST",
+      headers: { "Content-Type":"application/json", "Accept":"application/json" },
       body: JSON.stringify(payload)
     });
 
     const text = await resp.text();
     const data = safeJsonParse(text);
+    showOut("outSubscribe", data);
 
-    showSubscribeOutput(data);
-
+    if (resp.ok) {
+      toast("Successful subscription ✅");
+      // Convenience: if session empty, auto-set it to the subscribed phone
+      if (!(localStorage.getItem(SESSION_KEY) || "").trim() && phone) {
+        localStorage.setItem(SESSION_KEY, phone);
+        const sess = document.getElementById("sessPhone");
+        if (sess) sess.value = phone;
+      }
+      // refresh clients to reflect new subscription
+      await getClients();
+    } else {
+      toast(typeof data === "string" ? data : (data?.raw || "Subscription failed."));
+    }
   } catch (e) {
-    showSubscribeOutput({ error: String(e) });
+    showOut("outSubscribe", { error: String(e) });
+    toast("Subscription error.");
   }
 }
-
-/*
- * POST /api/notifier/slots/{phone}
- */ 
 
 async function notifySlots() {
   try {
-    const phone = document.getElementById("notifyPhone").value.trim();
+    const phone = document.getElementById("notifyPhone")?.value.trim() || "";
     const resp = await fetch(ENDPOINTS.notifySlots + "/" + encodeURIComponent(phone), {
-      headers: { "Accept": "application/json" }
+      headers: { "Accept":"application/json" }
     });
     const text = await resp.text();
-    showNotifyOutput(safeJsonParse(text));
+    const data = safeJsonParse(text);
+    showOut("outNotify", data);
+    toast(resp.ok ? "Slots notification sent." : "Notifier error.");
   } catch (e) {
-    showNotifyOutput({ error: String(e) });
+    showOut("outNotify", { error: String(e) });
+    toast("Notifier error.");
   }
 }
-
-/*
- * POST /api/notifier/air/{phone}/{ip}
- */
 
 async function notifyAirQuality() {
   try {
-    const phone = document.getElementById("notifyPhone").value.trim();
-    const ip = document.getElementById("notifyIp").value.trim();
-
-    const resp = await fetch(
-      ENDPOINTS.notifyAir + "/" + encodeURIComponent(phone) + "/" + encodeURIComponent(ip),
-      { headers: { "Accept": "application/json" } }
-    );
-
+    const phone = document.getElementById("notifyPhone")?.value.trim() || "";
+    const ip = document.getElementById("notifyIp")?.value.trim() || "";
+    const resp = await fetch(ENDPOINTS.notifyAir + "/" + encodeURIComponent(phone) + "/" + encodeURIComponent(ip), {
+      headers: { "Accept":"application/json" }
+    });
     const text = await resp.text();
-    showNotifyOutput(safeJsonParse(text));
+    const data = safeJsonParse(text);
+    showOut("outNotify", data);
+    toast(resp.ok ? "Air quality notification sent." : "Notifier error.");
   } catch (e) {
-    showNotifyOutput({ error: String(e) });
+    showOut("outNotify", { error: String(e) });
+    toast("Notifier error.");
   }
 }
-
-/* ==========================================================
-   LOGS
-   ========================================================== */
 
 async function refreshLogs() {
   try {
     const lines = Number(document.getElementById("logLines")?.value || 200);
     const resp = await fetch(ENDPOINTS.logs + "?lines=" + encodeURIComponent(lines), {
-      headers: { "Accept": "text/plain" }
+      headers: { "Accept":"text/plain" }
     });
     const text = await resp.text();
-    showLogs(text);
+    showOut("outLogs", text);
   } catch (e) {
-    showLogs("Error loading logs: " + String(e));
+    showOut("outLogs", "Error loading logs: " + String(e));
   }
 }
 
-/* ==========================================================
-   EVENT LISTENERS
-   ========================================================== */
+// ========= Events =========
+document.getElementById("btnGetStations")?.addEventListener("click", getStations);
+document.getElementById("btnGetClients")?.addEventListener("click", getClients);
+document.getElementById("btnSubscribe")?.addEventListener("click", subscribe);
+document.getElementById("btnNotifySlots")?.addEventListener("click", notifySlots);
+document.getElementById("btnNotifyAir")?.addEventListener("click", notifyAirQuality);
+document.getElementById("btnRefreshLogs")?.addEventListener("click", refreshLogs);
 
-document.getElementById("btnGetStations")
-  ?.addEventListener("click", getStations);
+document.getElementById("btnClearOutput")?.addEventListener("click", () => {
+  showOut("outMain", "{ }");
+  showOut("outClientsRaw", "{ }");
+  showOut("outSubscribe", "{ }");
+  showOut("outNotify", "{ }");
+});
 
-document.getElementById("btnGetClients")
-  ?.addEventListener("click", getClients);
+document.getElementById("btnSaveSession")?.addEventListener("click", saveSession);
+document.getElementById("btnClearSession")?.addEventListener("click", clearSession);
+document.getElementById("btnRefreshFromClients")?.addEventListener("click", updateMySubscriptions);
 
-document.getElementById("btnSubscribe")
-  ?.addEventListener("click", subscribe);
+document.getElementById("stationSearch")?.addEventListener("input", renderStations);
+document.getElementById("btnFilterInService")?.addEventListener("click", (e) => {
+  filterInService = !filterInService;
+  e.target.classList.toggle("secondary", filterInService);
+  renderStations();
+});
+document.getElementById("btnFilterLowBikes")?.addEventListener("click", (e) => {
+  filterLowBikes = !filterLowBikes;
+  e.target.classList.toggle("secondary", filterLowBikes);
+  renderStations();
+});
 
-document.getElementById("btnNotifySlots")
-  ?.addEventListener("click", notifySlots);
-
-document.getElementById("btnNotifyAir")
-  ?.addEventListener("click", notifyAirQuality);
-
-document.getElementById("btnRefreshLogs")
-  ?.addEventListener("click", refreshLogs);
-
-// carrega logs al començar (per veure ràpid que funciona)
+// initial
+loadSession();
 refreshLogs();
