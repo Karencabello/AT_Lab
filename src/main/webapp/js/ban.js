@@ -112,7 +112,7 @@ function renderStations() {
   if (q) {
     list = list.filter(s => {
       const id = String(getStationField(s, ["id", "station_id", "stationId"], ""));
-      const name = normalize(getStationField(s, ["name", "station_name"], ""));
+
       return id.includes(q) || name.includes(q);
     });
   }
@@ -134,23 +134,24 @@ function renderStations() {
   }
 
   for (const st of list) {
-    const id = getStationField(st, ["id", "station_id", "stationId"], "");
-    const name = getStationField(st, ["name", "station_name"], "—");
-    const status = getStationField(st, ["status", "station_status"], "—");
-    const bikes = Number(getStationField(st, ["bikes", "num_bikes_available", "bikesAvailable"], 0));
-    const docks = Number(getStationField(st, ["docks", "num_docks_available", "docksAvailable"], 0));
-    const total = Number(getStationField(st, ["totalDocks", "num_docks", "capacity"], bikes + docks));
-    const occ = total > 0 ? Math.round((bikes / total) * 100) : 0;
+    const id = getStationField(st, ["station_id", "id"], "");
+  const status = getStationField(st, ["status"], "—");
+  const bikes = Number(getStationField(st, ["num_bikes_available", "bikes"], 0));
+  const docks = Number(getStationField(st, ["num_docks_available", "docks"], 0));
+  const charging = !!getStationField(st, ["is_charging_station"], false);
+  const last = Number(getStationField(st, ["last_reported"], 0));
+  const lastText = last ? new Date(last * 1000).toLocaleString() : "—";
+  const total = bikes + docks;
+  const occ = total > 0 ? Math.round((bikes / total) * 100) : 0;
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${id}</td>
-      <td>${escapeHtml(name)}</td>
-      <td><span class="badge">${escapeHtml(status)}</span></td>
-      <td>${bikes}</td>
-      <td>${docks}</td>
-      <td>${occ}%</td>
-    `;
+  tr.innerHTML = `
+    <td>${id}</td>
+    <td><span class="badge">${escapeHtml(status)}</span></td>
+    <td>${bikes}</td>
+    <td>${docks}</td>
+    <td>${charging ? "Yes" : "No"}</td>
+    <td>${escapeHtml(lastText)}</td>
+  `;
     tbody.appendChild(tr);
   }
 }
@@ -258,9 +259,20 @@ async function getStations() {
     const data = safeJsonParse(text);
     showOut("outMain", data);
 
-    stationsCache = Array.isArray(data) ? data : (Array.isArray(data?.stations) ? data.stations : []);
-    renderStations();
-    toast(`Stations loaded: ${stationsCache.length}`);
+      // Accepta:
+  // 1) resposta directa: [ {station_id...}, ... ]
+  // 2) wrapper: { data: { stations: [...] } }
+  // 3) wrapper extra: { data: { stations: { stations: [...] } } }
+  stationsCache =
+    (Array.isArray(data)) ? data :
+    (Array.isArray(data?.data?.stations)) ? data.data.stations :
+    (Array.isArray(data?.data?.stations?.stations)) ? data.data.stations.stations :
+    (Array.isArray(data?.stations)) ? data.stations :
+    (Array.isArray(data?.stations?.stations)) ? data.stations.stations :
+    [];
+
+  renderStations();
+  toast(`Stations loaded: ${stationsCache.length}`);
   } catch (e) {
     showOut("outMain", { error: String(e) });
     toast("Error loading stations.");
@@ -343,9 +355,22 @@ async function notifyAirQuality() {
   try {
     const phone = document.getElementById("notifyPhone")?.value.trim() || "";
     const ip = document.getElementById("notifyIp")?.value.trim() || "";
-    const resp = await fetch(ENDPOINTS.notifyAir + "/" + encodeURIComponent(phone) + "/" + encodeURIComponent(ip), {
-      headers: { "Accept":"application/json" }
-    });
+
+    if (!phone) {
+      toast("Enter phone first.");
+      document.getElementById("notifyPhone")?.focus();
+      return;
+    }
+    if (!ip) {
+      toast("IP is required for air quality.");
+      document.getElementById("notifyIp")?.focus();
+      return;
+    }
+
+    const resp = await fetch(
+      ENDPOINTS.notifyAir + "/" + encodeURIComponent(phone) + "/" + encodeURIComponent(ip),
+      { headers: { "Accept":"application/json" } }
+    );
     const text = await resp.text();
     const data = safeJsonParse(text);
     showOut("outNotify", data);
