@@ -99,61 +99,42 @@ function renderStations() {
 
   const q = normalize(document.getElementById("stationSearch")?.value || "");
 
-  let list = [...stationsCache];
+  let list = Array.isArray(stationsCache) ? [...stationsCache] : [];
 
-  if (filterInService) {
-    list = list.filter(s => normalize(getStationField(s, ["status", "station_status"])) === "in_service");
-  }
+  if (filterInService) list = list.filter(s => normalize(s?.status) === "in_service");
+  if (filterLowBikes)  list = list.filter(s => Number(s?.num_bikes_available ?? 0) <= 2);
 
-  if (filterLowBikes) {
-    list = list.filter(s => Number(getStationField(s, ["bikes", "num_bikes_available", "bikesAvailable"], 0)) <= 2);
-  }
+  if (q) list = list.filter(s => String(s?.station_id ?? "").includes(q));
 
-  if (q) {
-    list = list.filter(s => {
-      const id = String(getStationField(s, ["id", "station_id", "stationId"], ""));
-
-      return id.includes(q) || name.includes(q);
-    });
-  }
-
-  // KPIs based on displayed list
   const totals = stationTotals(list);
   setText("kpiStations", String(list.length));
   setText("kpiBikes", String(totals.bikes));
   setText("kpiDocks", String(totals.docks));
   setText("kpiOcc", totals.occ + "%");
 
-  tbody.innerHTML = "";
-
   if (!list.length) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="6" class="empty">No stations match your filters.</td>`;
-    tbody.appendChild(tr);
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">No stations match your filters.</td></tr>`;
     return;
   }
 
-  for (const st of list) {
-    const id = getStationField(st, ["station_id", "id"], "");
-  const status = getStationField(st, ["status"], "—");
-  const bikes = Number(getStationField(st, ["num_bikes_available", "bikes"], 0));
-  const docks = Number(getStationField(st, ["num_docks_available", "docks"], 0));
-  const charging = !!getStationField(st, ["is_charging_station"], false);
-  const last = Number(getStationField(st, ["last_reported"], 0));
-  const lastText = last ? new Date(last * 1000).toLocaleString() : "—";
-  const total = bikes + docks;
-  const occ = total > 0 ? Math.round((bikes / total) * 100) : 0;
+  tbody.innerHTML = list.map(s => {
+    const id = s?.station_id ?? "—";
+    const status = s?.status ?? "—";
+    const bikes = Number(s?.num_bikes_available ?? 0);
+    const docks = Number(s?.num_docks_available ?? 0);
+    const total = bikes + docks;
+    const occ = total > 0 ? Math.round((bikes / total) * 100) : 0;
 
-  tr.innerHTML = `
-    <td>${id}</td>
-    <td><span class="badge">${escapeHtml(status)}</span></td>
-    <td>${bikes}</td>
-    <td>${docks}</td>
-    <td>${charging ? "Yes" : "No"}</td>
-    <td>${escapeHtml(lastText)}</td>
-  `;
-    tbody.appendChild(tr);
-  }
+    return `
+      <tr>
+        <td>${id}</td>
+        <td><span class="badge">${escapeHtml(status)}</span></td>
+        <td>${bikes}</td>
+        <td>${docks}</td>
+        <td>${occ}%</td>
+      </tr>
+    `;
+  }).join("");
 }
 
 function escapeHtml(str){
@@ -253,28 +234,51 @@ function updateMySubscriptions() {
 
 // ========= API calls =========
 async function getStations() {
+  const url = ENDPOINTS.stations;
+  showOut("outMain", { info: "Requesting…", url });
+
   try {
-    const resp = await fetch(ENDPOINTS.stations, { headers: { "Accept":"application/json" } });
+    const resp = await fetch(url, { headers: { "Accept": "application/json" } });
     const text = await resp.text();
-    const data = safeJsonParse(text);
+
+    // Muestra siempre lo que vuelve el servidor (aunque sea HTML de error)
+    let data = safeJsonParse(text);
+
+    // Si NO es 2xx, no lo tratamos como excepción: lo mostramos claro
+    if (!resp.ok) {
+      showOut("outMain", {
+        error: "HTTP error",
+        url,
+        status: resp.status,
+        statusText: resp.statusText,
+        bodyPreview: text.slice(0, 500)
+      });
+      toast(`HTTP ${resp.status} on /stations`);
+      return;
+    }
+
     showOut("outMain", data);
 
-      // Accepta:
-  // 1) resposta directa: [ {station_id...}, ... ]
-  // 2) wrapper: { data: { stations: [...] } }
-  // 3) wrapper extra: { data: { stations: { stations: [...] } } }
-  stationsCache =
-    (Array.isArray(data)) ? data :
-    (Array.isArray(data?.data?.stations)) ? data.data.stations :
-    (Array.isArray(data?.data?.stations?.stations)) ? data.data.stations.stations :
-    (Array.isArray(data?.stations)) ? data.stations :
-    (Array.isArray(data?.stations?.stations)) ? data.stations.stations :
-    [];
+    // Soporta array directo o wrappers
+    stationsCache =
+      (Array.isArray(data)) ? data :
+      (Array.isArray(data?.data?.stations)) ? data.data.stations :
+      (Array.isArray(data?.data?.stations?.stations)) ? data.data.stations.stations :
+      (Array.isArray(data?.stations)) ? data.stations :
+      (Array.isArray(data?.stations?.stations)) ? data.stations.stations :
+      [];
 
-  renderStations();
-  toast(`Stations loaded: ${stationsCache.length}`);
+    renderStations();
+    toast(`Stations loaded: ${stationsCache.length}`);
+
   } catch (e) {
-    showOut("outMain", { error: String(e) });
+    // Aquí caen errores reales de red (ECONNREFUSED, CORS, etc.)
+    showOut("outMain", {
+      error: "Network/Fetch failed",
+      url,
+      message: String(e),
+      stack: e?.stack || "(no stack)"
+    });
     toast("Error loading stations.");
   }
 }
