@@ -234,9 +234,11 @@ button:active{ transform: translateY(1px); }
   margin-top: 12px;
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,.10);
-  overflow:auto;
+  overflow: auto;
   background: rgba(0,0,0,.18);
-  min-height: 280px;
+  max-height: 520px;      
+  overflow-y: auto;
+  overflow-x: auto;
 }
 table{ width:100%; border-collapse: collapse; font-size: 13px; }
 th,td{ padding: 10px 10px; border-bottom: 1px solid rgba(255,255,255,.08); text-align:left; white-space: nowrap; }

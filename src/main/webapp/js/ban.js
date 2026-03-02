@@ -11,10 +11,19 @@
  *  - Això permet que funcioni en local i en Docker sense canvis
  **********************************************************************/
 
-// ========= API base autodetect (same idea as yours) =========
-const PATH = window.location.pathname;
-const CONTEXT = PATH.replace(/\/[^\/]*$/, "").replace(/\/$/, "");
-const API_BASE = window.location.origin + CONTEXT + "/api";
+// ========= API base autodetect (robust) =========
+function detectContextRoot() {
+  const parts = window.location.pathname.split("/").filter(Boolean);
+
+  // ROOT: "/" o "/index.html"
+  if (parts.length === 0) return "";
+  if (parts[0].includes(".")) return ""; // index.html, etc.
+
+  // War context: "/AT_Lab/...."
+  return "/" + parts[0];
+}
+
+const API_BASE = window.location.origin + detectContextRoot() + "/api";
 
 const ENDPOINTS = {
   stations: API_BASE + "/stations",
@@ -386,15 +395,20 @@ async function notifyAirQuality() {
 }
 
 async function refreshLogs() {
+  const lines = Number(document.getElementById("logLines")?.value || 200);
+  const url = ENDPOINTS.logs + "?lines=" + encodeURIComponent(lines);
+
   try {
-    const lines = Number(document.getElementById("logLines")?.value || 200);
-    const resp = await fetch(ENDPOINTS.logs + "?lines=" + encodeURIComponent(lines), {
-      headers: { "Accept":"text/plain" }
-    });
+    const resp = await fetch(url, { headers: { "Accept": "text/plain" } });
     const text = await resp.text();
+
+    if (!resp.ok) {
+      showOut("outLogs", `HTTP ${resp.status} ${resp.statusText}\nURL: ${url}\n\n${text.slice(0, 1200)}`);
+      return;
+    }
     showOut("outLogs", text);
   } catch (e) {
-    showOut("outLogs", "Error loading logs: " + String(e));
+    showOut("outLogs", "Error loading logs: " + String(e) + "\nURL: " + url);
   }
 }
 
