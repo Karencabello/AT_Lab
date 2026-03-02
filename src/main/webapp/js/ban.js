@@ -34,7 +34,6 @@ const ENDPOINTS = {
   logs: API_BASE + "/logs"
 };
 
-document.getElementById("apiBaseHint").textContent = API_BASE;
 
 // ========= State =========
 let stationsCache = [];
@@ -241,6 +240,14 @@ function updateMySubscriptions() {
   }
 }
 
+function setSubAlert(type, msg){
+  const el = document.getElementById("subAlert");
+  if (!el) return;
+  el.className = "alert " + (type || "");
+  el.textContent = msg;
+  el.style.display = msg ? "block" : "none";
+}
+
 // ========= API calls =========
 async function getStations() {
   const url = ENDPOINTS.stations;
@@ -329,8 +336,17 @@ async function subscribe() {
     const data = safeJsonParse(text);
     showOut("outSubscribe", data);
 
+    const msg =
+      (typeof data === "string") ? data :
+      (data?.raw) ? data.raw :
+      (data?.message) ? data.message :
+      (resp.ok ? "OK" : "Subscription failed");
+
+    if (resp.ok) setSubAlert("ok", "Subscribed correctly.");
+    else setSubAlert("err", msg);
+
     if (resp.ok) {
-      toast("Successful subscription ✅");
+      toast("Successful subscription ");
       // Convenience: if session empty, auto-set it to the subscribed phone
       if (!(localStorage.getItem(SESSION_KEY) || "").trim() && phone) {
         localStorage.setItem(SESSION_KEY, phone);
