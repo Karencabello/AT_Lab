@@ -90,7 +90,29 @@ function stationTotals(stations) {
 // ========= Render: raw outputs =========
 function showOut(id, data) {
   const el = document.getElementById(id);
-  if (el) el.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+  if (!el) return;
+
+  // Si el backend retorna text (o safeJsonParse l'ha posat dins {raw: ...})
+  if (typeof data === "string") {
+    el.textContent = data;
+    return;
+  }
+
+  if (data && typeof data === "object") {
+    // Cas típic: { raw: "User is not an adult" }
+    const keys = Object.keys(data);
+    if (keys.length === 1 && keys[0] === "raw") {
+      el.textContent = String(data.raw);
+      return;
+    }
+    // Altres casos comuns: { message: "..."}
+    if (typeof data.message === "string") {
+      el.textContent = data.message;
+      return;
+    }
+  }
+
+  el.textContent = JSON.stringify(data, null, 2);
 }
 
 // ========= Render: stations table =========
@@ -248,6 +270,14 @@ function setSubAlert(type, msg){
   el.style.display = msg ? "block" : "none";
 }
 
+function setSubAlert(type, msg){
+  const el = document.getElementById("subAlert");
+  if (!el) return;
+  el.className = "alert " + (type || "");
+  el.textContent = msg;
+  el.style.display = msg ? "block" : "none";
+}
+
 // ========= API calls =========
 async function getStations() {
   const url = ENDPOINTS.stations;
@@ -335,15 +365,15 @@ async function subscribe() {
     const text = await resp.text();
     const data = safeJsonParse(text);
     showOut("outSubscribe", data);
-
-    const msg =
+    const msg = 
       (typeof data === "string") ? data :
       (data?.raw) ? data.raw :
       (data?.message) ? data.message :
       (resp.ok ? "OK" : "Subscription failed");
 
-    if (resp.ok) setSubAlert("ok", "Subscribed correctly.");
-    else setSubAlert("err", msg);
+    if (resp.ok) setSubAlert("ok", "✅ Subscribed correctly.");
+    else setSubAlert("err", "❌ " + msg);
+
 
     if (resp.ok) {
       toast("Successful subscription ");
