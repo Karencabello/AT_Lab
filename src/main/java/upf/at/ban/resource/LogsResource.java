@@ -17,12 +17,14 @@ import javax.ws.rs.core.Response;
 @Path("/logs")
 public class LogsResource {
 
+    // Ruta del fitxer de logs
     private static final java.nio.file.Path LOG_FILE =
             Paths.get("/tmp/log4j-application.log");
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogs(@QueryParam("lines") @DefaultValue("200") int lines) {
+        // Max i minim de linies per si de cas
         int n = Math.max(1, Math.min(lines, 5000));
 
         if (!Files.exists(LOG_FILE)) {
@@ -30,7 +32,10 @@ public class LogsResource {
         }
 
         try {
+            // Llegeix totes les linies del fitxer de logs
             List<String> all = Files.readAllLines(LOG_FILE, StandardCharsets.UTF_8);
+            
+            // agafem nomès les ultimes n linies
             int from = Math.max(0, all.size() - n);
             String body = String.join("\n", all.subList(from, all.size()));
             if (!body.endsWith("\n")) body += "\n";

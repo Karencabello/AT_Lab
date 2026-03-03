@@ -10,8 +10,8 @@ import javax.ws.rs.core.MediaType;
 import upf.at.ban.model.NotifierResponse;
 import upf.at.ban.service.NotifierService;
 
-import upf.at.ban.model.NotifierResponse;
-import upf.at.ban.service.NotifierService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -24,6 +24,9 @@ import upf.at.ban.service.NotifierService;
 @Path("/notifier")
 public class NotifierResource {
 
+    // logs
+    private static final Logger log = LogManager.getLogger(NotifierResource.class);
+
     // Servei amb la lògica de negoci
     private static final NotifierService notifierService = new NotifierService();
 
@@ -35,13 +38,32 @@ public class NotifierResource {
     @Path("/slots/{phone}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response notifySlots(@PathParam("phone") String phone) {
-        NotifierResponse result = notifierService.notifySlots(phone);
+        // Log d'entrada (útil per traçar demo)
+        log.info("notifySlots called for phone={}", phone);
 
-        if ("ERROR".equals(result.getStatus())) {
-        return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
+        try {
+            NotifierResponse result = notifierService.notifySlots(phone);
+
+            // Log del resultat
+            if ("ERROR".equals(result.getStatus())) {
+                // BAD_REQUEST perquè el problema és de dades/entrada (client no existeix, etc.)
+                log.warn("notifySlots ERROR for phone={} message={}", phone, result.getMessage());
+                return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
+            }
+
+            log.info("notifySlots OK for phone={} message={}", phone, result.getMessage());
+            return Response.ok(result).build();
+
+        } catch (Exception e) {
+            // Catch de seguretat per si alguna cosa peta inesperadament
+            log.error("notifySlots EXCEPTION for phone={}", phone, e);
+
+            NotifierResponse err = new NotifierResponse();
+            err.setStatus("ERROR");
+            err.setMessage("Internal error sending slots notification");
+
+            return Response.serverError().entity(err).build();
         }
-
-        return Response.ok(result).build();
     }
 
     /**
@@ -52,13 +74,32 @@ public class NotifierResource {
     @Path("/air/{phone}/{ip}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response notifyAirQuality(@PathParam("phone") String phone, @PathParam("ip") String ip){
-        NotifierResponse result = notifierService.notifyAirQuality(phone, ip);
+        // Log d'entrada (útil per traçar demo)
+        log.info("notifySlots called for phone={}", phone);
 
-        if ("ERROR".equals(result.getStatus())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
+        try {
+            NotifierResponse result = notifierService.notifySlots(phone);
+
+            // Log del resultat
+            if ("ERROR".equals(result.getStatus())) {
+                // BAD_REQUEST perquè el problema és de dades/entrada (client no existeix, etc.)
+                log.warn("notifySlots ERROR for phone={} message={}", phone, result.getMessage());
+                return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
+            }
+
+            log.info("notifySlots OK for phone={} message={}", phone, result.getMessage());
+            return Response.ok(result).build();
+
+        } catch (Exception e) {
+            // Catch de seguretat per si alguna cosa peta inesperadament
+            log.error("notifySlots EXCEPTION for phone={}", phone, e);
+
+            NotifierResponse err = new NotifierResponse();
+            err.setStatus("ERROR");
+            err.setMessage("Internal error sending slots notification");
+
+            return Response.serverError().entity(err).build();
         }
-
-        return Response.ok(result).build();
     }
 
 } 

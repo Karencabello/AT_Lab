@@ -20,10 +20,16 @@ import org.apache.logging.log4j.Logger;
 public class StationResource {
     private static final CacheService cacheService = new CacheService();
 
+    // Logs
+    private static final Logger log = LogManager.getLogger(StationResource.class);
+
     // Endpoint per obtenir totes les estacions
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<Station> getAllStations() {
-        return cacheService.getStationsCached();
+        log.debug("GET /stations called");
+        List<Station> stations = cacheService.getStationsCached();
+        log.debug("Returning {} stations", stations != null ? stations.size() : 0);
+        return stations;
     }    
 }

@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  web.xml = Deployment Descriptor de Tomcat.
+
+  Aquí defines:
+  - quin servlet gestiona les peticions (Jersey ServletContainer)
+  - quin prefix d'URL va cap a l'API (url-pattern /api/*)
+  - on ha de buscar Jersey les classes @Path (provider.packages)
+-->
+
 <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
          version="3.1">
 
