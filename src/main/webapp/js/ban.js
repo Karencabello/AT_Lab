@@ -318,10 +318,26 @@ function updateMySubscriptions() {
   }
 }
 
-// Mostra un missatge d'alerta després de subscriure's, 
-// amb estil diferent segons si ha sigut exitosa o no.
-function setSubAlert(type, msg){
-  const el = document.getElementById("subAlert");
+/**
+ * Mostra/amaga l'alerta de la secció "My session".
+ * type: classe extra CSS (ex: "ok", "err") per canviar color/estil
+ * msg: text a mostrar; si és buit, s'amaga
+ */
+function setSessionAlert(type, msg) {
+  const el = document.getElementById("sessionAlert");
+  if (!el) return;
+  el.className = "alert " + (type || "");
+  el.textContent = msg;
+  el.style.display = msg ? "block" : "none";
+}
+
+/**
+ * Mostra/amaga l'alerta de la secció "Subscribe client".
+ * type: classe extra CSS (ex: "ok", "err") per canviar color/estil
+ * msg: text a mostrar; si és buit, s'amaga
+ */
+function setSubscribeAlert(type, msg) {
+  const el = document.getElementById("subscribeAlert");
   if (!el) return;
   el.className = "alert " + (type || "");
   el.textContent = msg;
@@ -430,8 +446,9 @@ async function subscribe() {
       (data?.message) ? data.message :
       (resp.ok ? "OK" : "Subscription failed");
 
-    if (resp.ok) setSubAlert("ok", "✅ Subscribed correctly.");
-    else setSubAlert("err", "❌ " + msg);
+    // Alert específic del formulari de subscripció
+    if (resp.ok) setSubscribeAlert("ok", "Subscribed correctly.");
+    else setSubscribeAlert("err", msg);
 
 
     if (resp.ok) {

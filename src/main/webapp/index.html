@@ -1,37 +1,49 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <!-- Charset: permet caràcters especials (accents, símbols) correctament -->
   <meta charset="utf-8" />
+  <!-- Viewport: fa que la UI sigui responsive al mòbil (escala correcta) -->
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+  <!-- Títol de la pàgina -->
   <title>SkyBlue Ops · BAN</title>
+ 
+  <!-- Estils CSS -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
 
 <body>
-  <!-- Top bar -->
+  <!-- Top bar  - Capaçalera + accés bot telegram-->
   <header class="topbar">
     <div class="brand">
+      <!-- Logo decoratiu -->
       <div class="logo" aria-hidden="true">SB</div>
+      
+      <!-- Títol i subtitol de la web -->
       <div>
         <h1>SkyBlue Ops</h1>
         <p>Bicing Availability & Notifier</p>
       </div>
     </div>
 
+      <!-- Botó per obrir el bot de Telegram en una nova pestanya -->
       <a class="tgBtn" href="https://t.me/AppsTelem_bot" target="_blank" rel="noreferrer">
         Open Telegram bot →
       </a>
     </div>
   </header>
 
+  <!-- MAIN WRAPPER: Contenidor principal de totes les seccions -->
   <main class="wrap">
-    <!-- Hero -->
+    <!-- Hero: presentació i botons d'acció principals -->
     <section class="hero">
       <div>
         <h2>Control panel</h2>
         <p>Stations, clients, subscriptions, notifications, and live logs.</p>
       </div>
 
+      <!-- Botons d'acció principals: carregar stations, clients, i netejar output -->
       <div class="heroActions">
         <button class="primary" id="btnGetStations">Get stations</button>
         <button class="secondary" id="btnGetClients">Get clients</button>
@@ -39,8 +51,9 @@
       </div>
     </section>
 
+    <!-- GRID: dues columnes, a l'esquerra la taula de stations i a la dreta el panell de subscripcions i notificacions -->
     <section class="grid">
-      <!-- LEFT: Stations -->
+      <!-- LEFT: Stations, taula -->
       <section class="card">
         <div class="cardTop">
           <div>
@@ -49,12 +62,15 @@
           </div>
 
           <div class="cardActions">
+            <!-- Input de cerca i botons de filtre per la taula de stations: ban escolta -->
             <input id="stationSearch" class="pillInput" placeholder="Search by name or id…" />
+            <!-- Botons de filtre: només in service, i només low bikes (per sota de 20% ocupació) -->
             <button class="ghost" id="btnFilterInService" title="Toggle filter">In service</button>
             <button class="ghost" id="btnFilterLowBikes" title="Toggle filter">Low bikes</button>
           </div>
         </div>
 
+        <!-- KPIs: quatre targetes amb informació resumida de les stations carregades i filtrades, ban actualitza amb settext -->
         <div class="kpis" id="kpis">
           <div class="kpi">
             <div class="kpiLabel">Stations</div>
@@ -74,6 +90,7 @@
           </div>
         </div>
 
+        <!-- Taula de stations:el tbody s’omple dinàmicament amb renderStations() -->
         <div class="tableWrap">
           <table>
             <thead>
@@ -85,12 +102,15 @@
                 <th>Occupancy</th>
               </tr>
             </thead>
+
+            <!-- Aquest tbody és on ban.js posa les files HTML -->
             <tbody id="stationsTbody">
               <tr><td colspan="6" class="empty">No data yet. Click “Get stations”.</td></tr>
             </tbody>
           </table>
         </div>
 
+        <!-- Aquest tbody és on ban.js posa les files HTML -->
         <details class="drawer">
           <summary>Raw response</summary>
           <pre class="out" id="outMain">{ }</pre>
@@ -104,28 +124,35 @@
             <h3>My session</h3>
             <p>Use your phone as a lightweight login to show subscriptions.</p>
           </div>
-          <div id="subAlert" class="alert" style="display:none;"></div>
+          <!-- Alert de la secció "My session":
+          Es fa servir per mostrar missatges relacionats amb la sessió (save/logout) -->
+          <div id="sessionAlert" class="alert" style="display:none;"></div>
         </div>
 
         <div class="form">
           <div class="field">
             <label>Phone</label>
+            <!-- sessPhone: phone que es guarda a localStorage com “sessió” -->
             <input id="sessPhone" placeholder="+34…" />
           </div>
           <div class="row">
+            <!-- sessPhone: phone que es guarda a localStorage com “sessió” -->
             <button class="primary" id="btnSaveSession">Save session</button>
+            <!-- btnSaveSession: guarda el phone a localStorage (saveSession()) -->
             <button class="ghost" id="btnClearSession">Log out</button>
           </div>
 
+          <!-- btnClearSession: esborra localStorage (clearSession()) -->
           <div class="subSection">
             <div class="subTitle">My subscriptions</div>
             <div class="subHint" id="mySubsHint">Set a phone to view your subscribed stations after you subscribe.</div>
             <div class="subsChips" id="mySubsChips"></div>
           </div>
         </div>
-
+        <!-- Separador visual -->
         <hr class="hr" />
 
+        <!-- ---------- Subscribe client ---------- -->
         <div class="cardTop">
           <div>
             <h3>Subscribe client</h3>
@@ -136,28 +163,36 @@
         <div class="form">
           <div class="field">
             <label>Phone</label>
+            <!-- subPhone: phone del client a crear (payload del POST) -->
             <input id="subPhone" placeholder="+34…" />
           </div>
 
           <div class="field">
             <label>Stations IDs (CSV)</label>
+            <!-- subStations: string "1,2,3" que ban.js parseja a array [1,2,3] -->
             <input id="subStations" placeholder="1,2,3" />
           </div>
 
           <div class="two">
             <div class="field">
               <label>Telegram token</label>
+              <!-- subTgToken: token del bot (per enviar missatges) -->
               <input id="subTgToken" placeholder="123456:ABC…" />
             </div>
             <div class="field">
               <label>chat_id</label>
+              <!-- subTgToken: token del bot (per enviar missatges) -->
               <input id="subChatId" placeholder="123456789" />
             </div>
           </div>
 
+          <!-- btnSubscribe: envia POST /api/clients/subscribe -->
           <button class="primary" id="btnSubscribe">Subscribe</button>
-          <div id="subAlert" class="alert" style="display:none;"></div>
+          <!-- Alert de la secció "Subscribe client":
+          Es fa servir per mostrar si la subscripció ha anat bé o ha fallat -->
+          <div id="subscribeAlert" class="alert" style="display:none;"></div>
           
+          <!-- Drawer: mostra la resposta del subscribe en brut -->
           <details class="drawer">
             <summary>Subscribe response</summary>
             <pre class="out small" id="outSubscribe">{ }</pre>
@@ -166,6 +201,8 @@
 
         <hr class="hr" />
 
+
+        <!-- ---------- Notifier ---------- -->
         <div class="cardTop">
           <div>
             <h3>Notifier</h3>
@@ -176,18 +213,23 @@
         <div class="form">
           <div class="field">
             <label>Phone</label>
+            <!-- notifyPhone: phone del client al qual notificarem -->
             <input id="notifyPhone" placeholder="+34…" />
           </div>
           <div class="field">
             <label>IP (for AQI)</label>
-            <input id="notifyIp" placeholder="1.2.3.4" />
+            <!-- notifyIp: IP que s’utilitza per IP->City->AQI -->
+            <input id="notifyIp" placeholder="100.233.345.432" />
           </div>
 
           <div class="row">
+            <!-- btnNotifySlots: crida /api/notifier/slots/{phone} -->
             <button class="primary" id="btnNotifySlots">Notify slots</button>
+            <!-- btnNotifyAir: crida /api/notifier/air/{phone}/{ip} -->
             <button class="secondary" id="btnNotifyAir">Notify air</button>
           </div>
 
+          <!-- Drawer: resposta del notifier (en brut) -->
           <details class="drawer">
             <summary>Notifier response</summary>
             <pre class="out small" id="outNotify">{ }</pre>
@@ -203,14 +245,18 @@
             <p>Latest loaded from API.</p>
           </div>
           <div class="cardActions">
+            <!-- btnRefreshFromClients: recalcula els chips de subscripcions
+                 en cas que hagis carregat clients i vulguis refrescar -->
             <button class="ghost" id="btnRefreshFromClients">Refresh “My subscriptions”</button>
           </div>
         </div>
 
+        <!-- Aquí renderClients() injecta les targetes -->
         <div class="clientsWrap" id="clientsWrap">
           <div class="empty">No clients loaded. Click “Get clients”.</div>
         </div>
 
+        <!-- Aquí renderClients() injecta les targetes -->
         <details class="drawer">
           <summary>Raw clients response</summary>
           <pre class="out small" id="outClientsRaw">{ }</pre>
@@ -226,20 +272,25 @@
           <p>Backend application logs.</p>
         </div>
         <div class="cardActions">
+          <!-- Input per seleccionar quantes línies vols -->
           <label class="inlineLabel">
             <span>Lines</span>
             <input id="logLines" value="200" class="miniInput" />
           </label>
+          <!-- Input per seleccionar quantes línies vols -->
           <button class="primary" id="btnRefreshLogs">Refresh logs</button>
         </div>
       </div>
 
+      <!-- btnRefreshLogs: crida GET /api/logs?lines=... -->
       <pre class="out" id="outLogs">(loading…)</pre>
     </section>
   </main>
 
+  <!-- Aquí refreshLogs() posa el text -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <!-- Carreguem el JS al final perquè el DOM ja existeixi (millor pràctica) -->
   <script src="js/ban.js"></script>
 </body>
 </html>
