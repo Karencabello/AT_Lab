@@ -75,31 +75,20 @@ public class NotifierResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response notifyAirQuality(@PathParam("phone") String phone, @PathParam("ip") String ip){
         // Log d'entrada (útil per traçar demo)
-        log.info("notifySlots called for phone={}", phone);
+        log.info("notifyAirQuality called for phone={} ip={}", phone, ip);
 
-        try {
-            NotifierResponse result = notifierService.notifySlots(phone);
+        NotifierResponse result = notifierService.notifyAirQuality(phone, ip);
 
-            // Log del resultat
-            if ("ERROR".equals(result.getStatus())) {
-                // BAD_REQUEST perquè el problema és de dades/entrada (client no existeix, etc.)
-                log.warn("notifySlots ERROR for phone={} message={}", phone, result.getMessage());
-                return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
-            }
-
-            log.info("notifySlots OK for phone={} message={}", phone, result.getMessage());
-            return Response.ok(result).build();
-
-        } catch (Exception e) {
-            // Catch de seguretat per si alguna cosa peta inesperadament
-            log.error("notifySlots EXCEPTION for phone={}", phone, e);
-
-            NotifierResponse err = new NotifierResponse();
-            err.setStatus("ERROR");
-            err.setMessage("Internal error sending slots notification");
-
-            return Response.serverError().entity(err).build();
+        if ("ERROR".equals(result.getStatus())) {
+            log.warn("notifyAirQuality ERROR for phone={} ip={} message={}",
+                     phone, ip, result.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
         }
+
+        log.info("notifyAirQuality OK for phone={} ip={} message={}",
+                 phone, ip, result.getMessage());
+        return Response.ok(result).build();
+        
     }
 
 } 
