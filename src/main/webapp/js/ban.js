@@ -2,16 +2,29 @@
  * BAN Dashboard - Frontend Logic
  *
  * Aquest fitxer:
+ *  - Detecta el context path (AT_Lab) per construir les URLs d'API
+ *  - Fa fetch a endpoints REST del backend (Jersey) i mostra les respostes
+ *  - Renderitza una taula de stations amb filtres i KPIs
+ *  - Permet gestionar clients i subscripcions (via POST /api/clients/subscribe)
+ *  - Permet enviar notificacions de slots i qualitat d'aire als clients
+ *  - Mostra logs del backend
+ *
+ * Funcionalitats
  *  - Fa peticions HTTP al backend Jersey
  *  - Mostra resultats al panell de sortida
  *  - Permet crear clients via POST /api/clients/subscribe
  *
  * IMPORTANT:
  *  - Detectem automàticament el context path (AT_Lab)
+ *  - En un war tipic el context path és (/AT_Lab)
+ *  - En Docker (ROOT.war) és ""
  *  - Això permet que funcioni en local i en Docker sense canvis
  **********************************************************************/
 
-// ========= API base autodetect (robust) =========
+// ========= API - Autodetecció del context root =========
+// Permet que el mateix frontend funcioni tant si el war està desplegat com ROOT.war (context "") 
+// com si està desplegat com AT_Lab.war (context "/AT_Lab"), 
+// detectant-ho automàticament a partir de window.location.pathname.
 function detectContextRoot() {
   const parts = window.location.pathname.split("/").filter(Boolean);
 
@@ -23,8 +36,10 @@ function detectContextRoot() {
   return "/" + parts[0];
 }
 
+// API_BASE (ROOT) = http(s)://host:port
 const API_BASE = window.location.origin + detectContextRoot() + "/api";
 
+//Endpoints del backend per no repetir strings i gestionar més fàcilment
 const ENDPOINTS = {
   stations: API_BASE + "/stations",
   clients: API_BASE + "/clients",
@@ -35,17 +50,22 @@ const ENDPOINTS = {
 };
 
 
-// ========= State =========
+// ========= Estat memoria frontend =========
+// Cache fontend  de stations i clients per evitar recarregar-los 
 let stationsCache = [];
 let clientsCache = [];
+
+// Filtres de visualització de stations (per la taula)
 let filterInService = false;
 let filterLowBikes = false;
 
 // ========= Utils =========
+// Parseja JSON de forma segura i ensenya error
 function safeJsonParse(text) {
   try { return JSON.parse(text); } catch { return { raw: text }; }
 }
 
+// Converteix llista estacions 1,2,3 en [1,2,3]
 function parseStationsIds(csv) {
   return (csv || "")
     .split(",")
@@ -55,11 +75,16 @@ function parseStationsIds(csv) {
     .filter(n => !Number.isNaN(n));
 }
 
+// Actualitza el text d'un element per id
+// És una utilitat per actualitzar text en elements de la UI de forma segura i reutilitzable.
+// Evita repetir document.getElementById(...) i .textContent en el codi de renderitzat
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
 }
 
+// Un “toast” és un missatge petit que surt uns segons (tipus notificació).
+// Missatge visual amb timeout per desapareixer
 function toast(msg) {
   const el = document.getElementById("toast");
   if (!el) return;
@@ -69,8 +94,14 @@ function toast(msg) {
   toast._t = window.setTimeout(() => el.classList.remove("show"), 2600);
 }
 
+// Normalitza strings per comparacions (lowercase, trim)
 function normalize(s){ return String(s || "").toLowerCase(); }
 
+// Calcula:
+// - Total de bikes disponibles
+// - Total de docks disponibles
+// - Total general (bikes + docks)
+// - Ocupació mitjana (bikes / total) en %
 function stationTotals(stations) {
   let bikes = 0, docks = 0, total = 0, occSum = 0, occCount = 0;
   for (const st of stations) {
@@ -88,6 +119,8 @@ function stationTotals(stations) {
 }
 
 // ========= Render: raw outputs =========
+
+// Mostra de forma amigable el resultat de les peticions al backend, sense raw
 function showOut(id, data) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -116,37 +149,47 @@ function showOut(id, data) {
 }
 
 // ========= Render: stations table =========
-function getStationField(st, keys, fallback = "") {
-  for (const k of keys) {
-    if (st && st[k] !== undefined && st[k] !== null) return st[k];
-  }
-  return fallback;
-}
 
+// Renderitza la taula de stations aplicant els filtres i actualitzant els KPIs
+// Filtres:
+// - filterInService: només stations amb status "in_service"
+// - filterLowBikes: només stations amb 2 o menys bikes disponibles
+// - stationSearch: cerca per ID de station (inclusió parcial)
+// KPIs:
+// - kpiStations: total stations mostrades
+// - kpiBikes: total bikes disponibles
+// - kpiDocks: total docks disponibles
+// - kpiOcc: ocupació mitjana en %
 function renderStations() {
   const tbody = document.getElementById("stationsTbody");
   if (!tbody) return;
 
   const q = normalize(document.getElementById("stationSearch")?.value || "");
 
+  // copia per no untilizar original (cache) i aplicar filtres
   let list = Array.isArray(stationsCache) ? [...stationsCache] : [];
 
+  // Filtres: in_service i low bikes
   if (filterInService) list = list.filter(s => normalize(s?.status) === "in_service");
   if (filterLowBikes)  list = list.filter(s => Number(s?.num_bikes_available ?? 0) <= 2);
 
+  // Filtre de búsqueda per ID 
   if (q) list = list.filter(s => String(s?.station_id ?? "").includes(q));
 
+  // Calcula KPIs a partir de la llista filtrada
   const totals = stationTotals(list);
   setText("kpiStations", String(list.length));
   setText("kpiBikes", String(totals.bikes));
   setText("kpiDocks", String(totals.docks));
   setText("kpiOcc", totals.occ + "%");
 
+  // Si no queda cap station després de filtres, mostra missatge 
   if (!list.length) {
     tbody.innerHTML = `<tr><td colspan="5" class="empty">No stations match your filters.</td></tr>`;
     return;
   }
 
+  // Fem taula
   tbody.innerHTML = list.map(s => {
     const id = s?.station_id ?? "—";
     const status = s?.status ?? "—";
@@ -167,6 +210,8 @@ function renderStations() {
   }).join("");
 }
 
+// Escapa caracteres HTML para evitar inyección en la tabla
+// Per seguritat
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, s => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
@@ -174,6 +219,9 @@ function escapeHtml(str){
 }
 
 // ========= Render: clients cards =========
+
+// És una representació visual dels clients. El JSON encara el mostro a outClientsRaw, 
+// però les cards són per fer la demo més llegible
 function renderClients() {
   const wrap = document.getElementById("clientsWrap");
   if (!wrap) return;
@@ -204,8 +252,12 @@ function renderClients() {
 }
 
 // ========= Session + subscriptions =========
+
+// Guardamos el teléfono en localStorage para mantener la sesión entre recargas y 
+// mostrar las estaciones a las que el cliente está suscrito.
 const SESSION_KEY = "ban_session_phone";
 
+// Carrega el telefon i refresca les subscripcions del client al carregar la pàgina. 
 function loadSession() {
   const phone = localStorage.getItem(SESSION_KEY) || "";
   const sessInput = document.getElementById("sessPhone");
@@ -213,6 +265,7 @@ function loadSession() {
   updateMySubscriptions();
 }
 
+// Guarda el telefon com a sessio
 function saveSession() {
   const phone = document.getElementById("sessPhone")?.value.trim() || "";
   localStorage.setItem(SESSION_KEY, phone);
@@ -220,6 +273,7 @@ function saveSession() {
   updateMySubscriptions();
 }
 
+// Borra sessió
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
   const sessInput = document.getElementById("sessPhone");
@@ -228,6 +282,8 @@ function clearSession() {
   updateMySubscriptions();
 }
 
+// Actualitza la llista de subscripcions del client actual (segons el telèfon de sessió) 
+// a partir de clientsCache.
 function updateMySubscriptions() {
   const phone = localStorage.getItem(SESSION_KEY) || "";
   const hint = document.getElementById("mySubsHint");
@@ -262,6 +318,8 @@ function updateMySubscriptions() {
   }
 }
 
+// Mostra un missatge d'alerta després de subscriure's, 
+// amb estil diferent segons si ha sigut exitosa o no.
 function setSubAlert(type, msg){
   const el = document.getElementById("subAlert");
   if (!el) return;
@@ -270,15 +328,11 @@ function setSubAlert(type, msg){
   el.style.display = msg ? "block" : "none";
 }
 
-function setSubAlert(type, msg){
-  const el = document.getElementById("subAlert");
-  if (!el) return;
-  el.className = "alert " + (type || "");
-  el.textContent = msg;
-  el.style.display = msg ? "block" : "none";
-}
 
 // ========= API calls =========
+
+// GET /stations: carrega les stations del backend, les guarda a stationsCache, 
+// mostra el resultat raw i renderitza la taula de stations.
 async function getStations() {
   const url = ENDPOINTS.stations;
   showOut("outMain", { info: "Requesting…", url });
@@ -329,6 +383,8 @@ async function getStations() {
   }
 }
 
+// GET /clients: carrega els clients del backend, els guarda a clientsCache, 
+// mostra el resultat raw i renderitza les cards de clients.
 async function getClients() {
   try {
     const resp = await fetch(ENDPOINTS.clients, { headers: { "Accept":"application/json" } });
@@ -346,6 +402,9 @@ async function getClients() {
   }
 }
 
+// POST /clients/subscribe: crea o actualitza un client amb les dades del formulari, 
+// mostra el resultat raw i un missatge d'èxit o error segons la resposta del servidor. 
+// També actualitza la llista de clients per mostrar la nova subscripció.
 async function subscribe() {
   const phone = document.getElementById("subPhone")?.value.trim() || "";
   const payload = {
@@ -394,6 +453,9 @@ async function subscribe() {
   }
 }
 
+// POST /notifier/slots/{phone}: envia notificació de slots al client,
+// mostra el resultat raw i un missatge d'èxit o error segons la resposta del servidor.
+// Envia missatge
 async function notifySlots() {
   try {
     const phone = document.getElementById("notifyPhone")?.value.trim() || "";
@@ -410,6 +472,8 @@ async function notifySlots() {
   }
 }
 
+// POST /notifier/air/{phone}/{ip}: envia notificació de qualitat d'aire al client,
+// Envia missatge
 async function notifyAirQuality() {
   try {
     const phone = document.getElementById("notifyPhone")?.value.trim() || "";
@@ -440,6 +504,8 @@ async function notifyAirQuality() {
   }
 }
 
+// GET /logs: carrega els logs del backend, mostra el resultat raw i un missatge d'èxit 
+// o error segons la resposta del servidor. Permet especificar el nombre de línies a mostrar.
 async function refreshLogs() {
   const lines = Number(document.getElementById("logLines")?.value || 200);
   const url = ENDPOINTS.logs + "?lines=" + encodeURIComponent(lines);
@@ -458,7 +524,7 @@ async function refreshLogs() {
   }
 }
 
-// ========= Events =========
+// ========= Conectar botons/inputs amb funcions =========
 document.getElementById("btnGetStations")?.addEventListener("click", getStations);
 document.getElementById("btnGetClients")?.addEventListener("click", getClients);
 document.getElementById("btnSubscribe")?.addEventListener("click", subscribe);
