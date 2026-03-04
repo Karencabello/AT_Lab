@@ -16,6 +16,7 @@ public class Constants{
 
     //AQI service 
     public static final String AQI_API_URL = "https://api.waqi.info/feed/";
+    public static final String AQI_API_SEARCH = "https://api.waqi.info/search/";
 
     // IpGeo service
 

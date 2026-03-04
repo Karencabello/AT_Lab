@@ -17,15 +17,12 @@ import org.apache.logging.log4j.Logger;
 /**
  * AqiService
  *
- * Objectiu (segons el PDF):
+ * Objectiu:
  * - Obtenir l'Air Quality Index (AQI) a partir del NOM DE LA CIUTAT.
  * - Usant el projecte World Air Quality Index (aqicn.org / api.waqi.info) + token.
  *
- * IMPORTANT:
- * - Fer directament /feed/<city> NO funciona per totes les ciutats (ex: "Banyoles").
- * - Solució robusta "by city name":
- *    1) SEARCH per keyword=<city>  -> ens retorna estacions candidates (uid)
- *    2) FEED per @uid              -> ens retorna AQI fiable
+ *  1) SEARCH per keyword=<city>  -> ens retorna estacions candidates (uid)
+ *  2) FEED per @uid              -> ens retorna AQI fiable
  *
  * Això segueix complint: "AQI using the city name" perquè l'entrada és el city name.
  */
@@ -73,7 +70,7 @@ public class AqiService {
 
         try {
             WebTarget target = client
-                    .target("https://api.waqi.info/search/")
+                    .target(Constants.AQI_API_SEARCH)
                     .queryParam("keyword", city)
                     .queryParam("token", Constants.AQI_TOKEN);
 
