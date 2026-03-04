@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import upf.at.ban.model.Client;
 import upf.at.ban.repository.ClientRepository;
 import upf.at.ban.service.AgeVerificationService;
+import upf.at.ban.service.ValidateNameService;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +32,9 @@ public class ClientResource {
     // Servei per validar edat
     private AgeVerificationService ageService = new AgeVerificationService(); //validar edat
 
+    // Servei per validar nom
+     private ValidateNameService nameService = new ValidateNameService();
+
     @GET
     public Collection<Client> getClients() {
         logger.info("API_GET_CLIENTS");
@@ -43,14 +47,16 @@ public class ClientResource {
     @Path("/subscribe")
     public Response subscribe(Client client) {
 
-        // log
-        logger.info("\"API_SUBSCRIBE phone={} stations={} chatId={}\"", client.getPhone(), client.getStationsIDs(), client.getChat_id());
-
-        //si no client, retornem 400 (Bad Request)
-        if(client==null){ 
+        if (client == null) {
             logger.warn("SUBSCRIBE_REJECT reason=client_null");
-            return Response.status(Response.Status.BAD_REQUEST).entity("Client required").build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Client required")
+                    .build();
         }
+
+        // log
+        logger.info("\"API_SUBSCRIBE phone={} name={} stations={} chatId={}\"", client.getPhone(), client.getName(), client.getStationsIDs(), client.getChat_id());
+
 
         // si no phone, retornem 400 (Bad Request)
         if(client.getPhone() == null || client.getPhone().isEmpty()){
@@ -58,11 +64,38 @@ public class ClientResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("Phone number required").build();
         }
 
+        // si no name, retornem 400
+        if (client.getName() == null || client.getName().trim().isEmpty()) {
+            logger.warn("SUBSCRIBE_REJECT reason=name_missing phone={}", client.getPhone());
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Name required")
+                    .build();
+        }
+
         //si no adult, retornem 403 (Forbidden)
         if(!ageService.isAdult(client.getPhone())){ 
             logger.warn("SUBSCRIBE_REJECT reason=not_adult phone={}", client.getPhone());
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("User is not an adult")
+                    .build();
+        }
+        // MatchName, si l'API retorna nameMatch != true --> no deixem subscriure
+        boolean nameOk;
+        try {
+            nameOk = nameService.isNameMatchingPhone(client.getPhone(), client.getName());
+        } catch (Exception e) {
+            logger.error("SUBSCRIBE_REJECT reason=kyc_match_error phone={} err={}",
+                    client.getPhone(), e.toString());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Unable to validate name with phone number")
+                    .build();
+        }
+
+        if (!nameOk) {
+            logger.warn("SUBSCRIBE_REJECT reason=name_mismatch phone={} name={}",
+                    client.getPhone(), client.getName());
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Name does not match phone owner")
                     .build();
         }
 
