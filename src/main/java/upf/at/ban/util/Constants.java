@@ -42,23 +42,4 @@ public class Constants{
     public static final String OGW_CLIENT_ID = "af639f1b-2626-443c-8122-5a87c4c9f1c0";
     public static final String OGW_CLIENT_SECRET = "2b44dcac-5b08-442a-84cd-260c746665db";
     public static final String AQI_TOKEN = "52ee51d269aa2fd66d9411a7a65d186736d9fe42";
-
-    // know your costumer
-
-    // 2. CIBA token --> retorna access_token
-    public static final String AV_TOKEN_URL = OGW_HOST + "/token";
-    public static final String AV_GRANT_TYPE = "urn:openid:params:grant-type:ciba";
-
-    // 3. matchName -> retorna match
-    public static final String AV_VERIFY_URL = OGW_HOST + "/kyc-match/v0.2/match";
-    
-    // 4. scope
-    public static final String AV_SCOPE = "dpv:FraudPreventionAndDetection#kyc-match:match";
-
-    // 5. Credencials
-    public static final String AV_CLIENT_ID = "079af024-9d3c-471c-8201-f6cda4d9852b";
-    public static final String AV_CLIENT_SECRET = "01c1c240-a32a-4ea0-92bc-4e5094f6ccc8";
-
-
 }
-

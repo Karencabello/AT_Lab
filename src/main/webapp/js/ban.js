@@ -243,7 +243,6 @@ function renderClients() {
         <div class="badge">${stations.length} stations</div>
       </div>
       <div class="meta">
-        <span>name: ${escapeHtml(c.name ?? "—")}</span>
         <span>chat_id: ${escapeHtml(c.chat_id ?? "—")}</span>
         <span>tg token: ${c.telegramToken ? "✓ set" : "—"}</span>
       </div>
@@ -424,10 +423,8 @@ async function getClients() {
 // També actualitza la llista de clients per mostrar la nova subscripció.
 async function subscribe() {
   const phone = document.getElementById("subPhone")?.value.trim() || "";
-  const name  = document.getElementById("subName")?.value.trim() || ""; 
   const payload = {
     phone,
-    name,
     stationsIDs: parseStationsIds(document.getElementById("subStations")?.value || ""),
     telegramToken: (document.getElementById("subTgToken")?.value || "").trim(),
     chat_id: Number((document.getElementById("subChatId")?.value || "").trim())

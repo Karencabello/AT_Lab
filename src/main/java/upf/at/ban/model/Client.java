@@ -3,7 +3,6 @@ package upf.at.ban.model;
 import java.util.List;
 
 public class Client {
-    private String name;
     private String phone;
     private String telegramToken;
     private Long chat_id;
@@ -11,18 +10,6 @@ public class Client {
 
     public Client() { }
 
-    public Client(String name, String phone, String telegramToken, Long chat_id, List<Integer> stationsIDs) {
-        this.name = name;
-        this.phone = phone;
-        this.telegramToken = telegramToken;
-        this.chat_id = chat_id;
-        this.stationsIDs = stationsIDs;
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
     public String getPhone() {
         return phone;
     }
@@ -55,9 +42,5 @@ public class Client {
         this.stationsIDs = stationsIDs;
     }
 
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
+    
 }
